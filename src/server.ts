@@ -1,10 +1,14 @@
 import express from 'express';
 import http from 'http';
 import { SERVER } from './config/config';
-import './config/logging';
 import { corsHandler } from './middleware/corsHandler';
 import { loggingHandler } from './middleware/loggingHandler';
 import { routeNotFound } from './middleware/routeNotFound';
+
+import 'reflect-metadata';
+import './config/logging';
+import MainController from './controllers/main';
+import { defineRoutes } from './modules/routes';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -25,10 +29,7 @@ export const main = () => {
     logging.info('---------------------------------------------');
     logging.info('Define Controller Routing');
     logging.info('---------------------------------------------');
-
-    application.get('/healthcheck', (_, res) => {
-        res.status(200).json({ status: 'ok' });
-    });
+    defineRoutes([MainController], application);
 
     application.use(routeNotFound);
 
