@@ -1,0 +1,19 @@
+version: "3"
+services:
+  backend:
+    image: backend
+    ports:
+      - "3000:3000"
+    # depends_on:
+    #   - db
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: eventor
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
