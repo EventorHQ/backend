@@ -1,19 +1,25 @@
-version: "3"
+# prettier-ignore
 services:
   backend:
-    image: backend
+    build: .
     ports:
-      - "3000:3000"
-    # depends_on:
-    #   - db
+      - '3000:3000'
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
   db:
     image: postgres:15
-    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: eventor
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=eventor
+      - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d
+      - dump-data:/var/lib/postgresql/data
+
+volumes:
+  dump-data:
