@@ -4,7 +4,7 @@ include .env
 export $(shell sed 's/=.*//' .env)
 
 start-bot:
-	docker-compose -f ./bot/docker-compose.yml up -d
+	docker-compose -f ./bot/docker-compose.yml up -d --build bot
 
 start-api:
 	docker-compose -f ./api/docker-compose.yml up
