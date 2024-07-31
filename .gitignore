@@ -3,3 +3,4 @@ build
 .env
 pnpm-lock.yaml
 dump-data
+.DS_Store
