@@ -4,7 +4,7 @@ CREATE TABLE "users" (
   "last_name" text,
   "username" text,
   "photo_img" jsonb,
-  "is_admin" boolean,
+  "is_admin" boolean NOT NULL DEFAULT false,
   "created_at" timestamp NOT NULL
 );
 
@@ -14,6 +14,7 @@ CREATE TABLE "orgs" (
   "title" text NOT NULL,
   "description" text,
   "avatar_img" jsonb,
+  "is_fancy" boolean NOT NULL DEFAULT false,
   "created_at" timestamp NOT NULL
 );
 
@@ -33,6 +34,7 @@ CREATE TABLE "events" (
   "description" text NOT NULL,
   "cover_img" jsonb NOT NULL,
   "start_date" timestamp NOT NULL,
+  "end_date" timestamp NOT NULL,
   "location" text NOT NULL,
   "form" jsonb NOT NULL,
   "created_at" timestamp NOT NULL

@@ -1,17 +1,18 @@
 import express from 'express';
 import http from 'http';
+import 'reflect-metadata';
+import './config/logging';
+
 import { SERVER } from './config/config';
+import { defineRoutes } from './modules/routes';
+
 import { corsHandler } from './middleware/corsHandler';
 import { loggingHandler } from './middleware/loggingHandler';
 import { routeNotFound } from './middleware/routeNotFound';
 
-import 'reflect-metadata';
-import './config/logging';
 import MainController from './controllers/main';
+import OrgController from './controllers/org';
 import UserController from './controllers/user';
-import { defineRoutes } from './modules/routes';
-
-import './db';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -32,7 +33,7 @@ export const main = () => {
     logging.info('---------------------------------------------');
     logging.info('Define Controller Routing');
     logging.info('---------------------------------------------');
-    defineRoutes([MainController, UserController], application);
+    defineRoutes([MainController, UserController, OrgController], application);
 
     application.use(routeNotFound);
 
