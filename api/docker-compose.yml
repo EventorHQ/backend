@@ -1,6 +1,7 @@
 # prettier-ignore
 services:
-  backend:
+  api:
+    container_name: eventor-api
     build: .
     ports:
       - '3000:3000'
@@ -8,12 +9,14 @@ services:
       - DB_HOST=db
     depends_on:
       - db
+      
   db:
+    container_name: eventor-db
     image: postgres:15
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=eventor
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
       - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
       - '5432:5432'
