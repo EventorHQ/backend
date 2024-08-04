@@ -5,8 +5,8 @@ dotenv.config();
 export const DEVELOPMENT = process.env.NODE_ENV === 'development';
 export const TEST = process.env.NODE_ENV === 'test';
 
-export const SERVER_PORT = process.env.SERVER_PORT ? +process.env.SERVER_PORT : 3000;
-export const SERVER_HOSTNAME = process.env.SERVER_HOST || 'localhost';
+export const SERVER_PORT = process.env.SERVER_PORT ? +process.env.SERVER_PORT : 443;
+export const SERVER_HOSTNAME = process.env.SERVER_HOST || '127.0.0.1';
 
 export const SERVER = {
     PORT: SERVER_PORT,
@@ -26,3 +26,5 @@ export const DB = {
     PASSWORD: DB_PASSWORD,
     NAME: DB_NAME
 };
+
+export const BOT_TOKEN = process.env.BOT_TOKEN || '';
