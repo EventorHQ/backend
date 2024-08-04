@@ -1,9 +1,0 @@
-# prettier-ignore
-services:
-  bot:
-    container_name: eventor-bot
-    build: .
-    environment:
-      - BOT_TOKEN=${BOT_TOKEN}
-    ports:
-      - '3001:3001'
