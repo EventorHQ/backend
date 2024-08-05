@@ -1,10 +1,7 @@
 import { Bot } from 'grammy';
 import { BOT_TOKEN, SERVER } from '../config/config';
 
-export const createBot = () => {
-    const bot = new Bot(BOT_TOKEN);
-    return bot;
-};
+export const bot = new Bot(BOT_TOKEN);
 
 export const setupWebhook = async (bot: Bot) => {
     const webhookInfo = await bot.api.getWebhookInfo();

@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
+import { DEVELOPMENT } from '../config/config';
 
 export const corsHandler = (req: Request, res: Response, next: NextFunction) => {
-    res.header('Access-Control-Allow-Origin', req.header('origin'));
+    res.header('Access-Control-Allow-Origin', DEVELOPMENT ? '*' : req.header('origin'));
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
     if (req.method === 'OPTIONS') {

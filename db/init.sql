@@ -3,9 +3,9 @@ CREATE TABLE "users" (
   "first_name" text NOT NULL,
   "last_name" text,
   "username" text,
-  "photo_img" jsonb,
+  "photo_img" text,
   "is_admin" boolean NOT NULL DEFAULT false,
-  "created_at" timestamp NOT NULL
+  "created_at" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "orgs" (
@@ -13,9 +13,9 @@ CREATE TABLE "orgs" (
   "creator_id" bigint,
   "title" text NOT NULL,
   "description" text,
-  "avatar_img" jsonb,
+  "avatar_img" text,
   "is_fancy" boolean NOT NULL DEFAULT false,
-  "created_at" timestamp NOT NULL
+  "created_at" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "org_members" (
@@ -23,7 +23,7 @@ CREATE TABLE "org_members" (
   "org_id" int,
   "user_id" bigint,
   "role" text NOT NULL,
-  "created_at" timestamp NOT NULL
+  "created_at" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "events" (
@@ -37,7 +37,7 @@ CREATE TABLE "events" (
   "end_date" timestamp NOT NULL,
   "location" text NOT NULL,
   "form" jsonb NOT NULL,
-  "created_at" timestamp NOT NULL
+  "created_at" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "event_visitors" (
@@ -46,7 +46,7 @@ CREATE TABLE "event_visitors" (
   "user_id" bigint,
   "form" jsonb NOT NULL,
   "check_in_date" timestamp,
-  "created_at" timestamp NOT NULL
+  "created_at" timestamp NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE "orgs" ADD FOREIGN KEY ("creator_id") REFERENCES "users" ("id");

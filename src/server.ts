@@ -1,5 +1,6 @@
 import express from 'express';
 import http from 'http';
+import fileUpload from 'express-fileupload';
 import 'reflect-metadata';
 import './config/logging';
 
@@ -13,22 +14,28 @@ import { routeNotFound } from './middleware/routeNotFound';
 import MainController from './controllers/main';
 import OrgController from './controllers/org';
 import UserController from './controllers/user';
-import { createBot, setupWebhook } from './bot';
 import { webhookCallback } from 'grammy';
+
+logging.info('---------------------------------------------');
+logging.info('Initializing BOT');
+logging.info('---------------------------------------------');
+import { bot } from './bot';
+import { defineBotApiProxy } from './modules/botApiProxy';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
 
 export const main = async () => {
     logging.info('---------------------------------------------');
-    logging.info('Initializing BOT');
-    logging.info('---------------------------------------------');
-    const bot = createBot();
-
-    logging.info('---------------------------------------------');
     logging.info('Initializing API');
     logging.info('---------------------------------------------');
     application.use(express.urlencoded({ extended: true }));
+    application.use(
+        fileUpload({
+            useTempFiles: true,
+            tempFileDir: '/var/tmp'
+        })
+    );
     application.use(express.json());
 
     logging.info('---------------------------------------------');
@@ -42,8 +49,11 @@ export const main = async () => {
     logging.info('---------------------------------------------');
     defineRoutes([MainController, UserController, OrgController], application);
 
-    application.use(webhookCallback(bot, 'express'));
-    await setupWebhook(bot);
+    logging.info('---------------------------------------------');
+    logging.info('Define Bot API');
+    logging.info('---------------------------------------------');
+    defineBotApiProxy(application);
+    // application.use(webhookCallback(bot, 'express'));
 
     application.use(routeNotFound);
 

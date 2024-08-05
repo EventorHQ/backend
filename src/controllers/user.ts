@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { db } from '../db';
 import { Controller } from '../decorators/controller';
 import { Route } from '../decorators/route';
-import { BaseUser } from '../models/user';
+import { PostUser } from '../models/user';
 
 @Controller('/users')
 class UserController {
@@ -16,17 +16,22 @@ class UserController {
     @Route('post', '')
     async createUser(req: Request, res: Response, next: NextFunction) {
         logging.info('Creating user');
-        const data = BaseUser.safeParse(req.body);
+        const data = PostUser.safeParse(req.body);
         if (!data.success) {
             return res.status(400).json({ status: 'error', errors: data.error });
         }
-        const result = await db.query('INSERT INTO users (first_name, last_name, is_admin, username) VALUES ($1, $2, $3, $4) RETURNING *', [
-            data.data.firstName,
-            data.data.lastName,
-            data.data.isAdmin,
-            data.data.username
-        ]);
-        return res.status(200).json(result.rows[0]);
+
+        let dbQueryResult;
+        try {
+            dbQueryResult = await db.query(
+                'INSERT INTO users (id, first_name, last_name, is_admin, username) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                [data.data.id, data.data.firstName, data.data.lastName, data.data.isAdmin, data.data.username]
+            );
+        } catch {
+            return res.status(400).json({ status: 'error', message: 'User already exists' });
+        }
+
+        return res.status(200).json(dbQueryResult.rows[0]);
     }
 
     @Route('get', '/:id')

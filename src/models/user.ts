@@ -8,4 +8,7 @@ export const BaseUser = z.object({
     isAdmin: z.boolean().optional()
 });
 
+export const PostUser = BaseUser.merge(HasID);
+export type PostUserType = z.infer<typeof PostUser>;
+
 export const User = BaseUser.merge(HasID).merge(HasCreatedAt);

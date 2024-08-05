@@ -28,3 +28,5 @@ export const DB = {
 };
 
 export const BOT_TOKEN = process.env.BOT_TOKEN || '';
+
+export const WISHYOUDIE_TGID = 384323500;

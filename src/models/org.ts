@@ -6,4 +6,10 @@ export const BaseOrg = z.object({
     description: z.string().nullable().optional()
 });
 
+export const PostOrg = z.object({
+    title: z.string(),
+    description: z.string(),
+    creatorId: z.number()
+});
+
 export const Org = BaseOrg.merge(HasID).merge(HasCreatedAt);
