@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { DB } from './config/config';
+import { DB } from './config/config.js';
 
 export const db = new Pool({
     user: DB.USER,

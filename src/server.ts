@@ -4,23 +4,23 @@ import fileUpload from 'express-fileupload';
 import 'reflect-metadata';
 import './config/logging';
 
-import { SERVER } from './config/config';
-import { defineRoutes } from './modules/routes';
+import { SERVER } from './config/config.js';
+import { defineRoutes } from './modules/routes.js';
 
-import { corsHandler } from './middleware/corsHandler';
-import { loggingHandler } from './middleware/loggingHandler';
-import { routeNotFound } from './middleware/routeNotFound';
+import { corsHandler } from './middleware/corsHandler.js';
+import { loggingHandler } from './middleware/loggingHandler.js';
+import { routeNotFound } from './middleware/routeNotFound.js';
+import { authHandler } from './middleware/authHandler.js';
 
-import MainController from './controllers/main';
-import OrgController from './controllers/org';
-import UserController from './controllers/user';
-import { webhookCallback } from 'grammy';
+import MainController from './controllers/main.js';
+import OrgController from './controllers/org.js';
+import UserController from './controllers/user.js';
+// import { webhookCallback } from 'grammy';
 
-logging.info('---------------------------------------------');
-logging.info('Initializing BOT');
-logging.info('---------------------------------------------');
-import { bot } from './bot';
-import { defineBotApiProxy } from './modules/botApiProxy';
+// logging.info('---------------------------------------------');
+// logging.info('Initializing BOT');
+// logging.info('---------------------------------------------');
+import { defineBotApiProxy } from './modules/botApiProxy.js';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -43,6 +43,7 @@ export const main = async () => {
     logging.info('---------------------------------------------');
     application.use(loggingHandler);
     application.use(corsHandler);
+    application.use(authHandler);
 
     logging.info('---------------------------------------------');
     logging.info('Define Controller Routing');

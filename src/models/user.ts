@@ -1,5 +1,5 @@
 import z from 'zod';
-import { HasCreatedAt, HasID } from './shared';
+import { HasCreatedAt, HasID } from './shared.js';
 
 export const BaseUser = z.object({
     firstName: z.string(),

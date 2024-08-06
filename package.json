@@ -2,9 +2,9 @@
   "name": "api",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "src/server.ts",
   "scripts": {
-    "test": "vitest",
     "build": "rm -rf build && tsc -p tsconfig.build.json",
     "start": "node build/server.js",
     "dev": "nodemon"
@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@telegram-apps/init-data-node": "^1.0.4",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-fileupload": "^1.5.1",

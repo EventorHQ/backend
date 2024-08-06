@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from 'express';
-import { db } from '../db';
-import { Controller } from '../decorators/controller';
-import { Route } from '../decorators/route';
-import { PostUser } from '../models/user';
+import type { NextFunction, Request, Response } from 'express';
+import { db } from '../db.js';
+import { Controller } from '../decorators/controller.js';
+import { Route } from '../decorators/route.js';
+import { PostUser } from '../models/user.js';
 
 @Controller('/users')
 class UserController {

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 export const routeNotFound = (req: Request, res: Response, next: NextFunction) => {
     const error = new Error('Route Not Found');

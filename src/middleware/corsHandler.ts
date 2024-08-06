@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { DEVELOPMENT } from '../config/config';
+import type { NextFunction, Request, Response } from 'express';
+import { DEVELOPMENT } from '../config/config.js';
 
 export const corsHandler = (req: Request, res: Response, next: NextFunction) => {
     res.header('Access-Control-Allow-Origin', DEVELOPMENT ? '*' : req.header('origin'));

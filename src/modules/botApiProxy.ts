@@ -1,6 +1,6 @@
-import { Express, Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { BOT_TOKEN } from '../config/config';
+import { BOT_TOKEN } from '../config/config.js';
 
 export function defineBotApiProxy(application: Express) {
     application.use(

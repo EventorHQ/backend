@@ -1,15 +1,15 @@
-import { NextFunction, Request, Response } from 'express';
-import { Controller } from '../decorators/controller';
-import { Route } from '../decorators/route';
-import { PostOrg } from '../models/org';
+import type { NextFunction, Request, Response } from 'express';
+import { Controller } from '../decorators/controller.js';
+import { Route } from '../decorators/route.js';
+import { Org, PostOrg } from '../models/org.js';
 import { readFileSync } from 'fs';
-import { db } from '../db';
-import { saveFileBuffer } from '../utils/saveFileBuffer';
+import { db } from '../db.js';
+import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 
 @Controller('/orgs')
 class OrgController {
     @Route('get', '')
-    async getAllOrgs(req: Request, res: Response, next: NextFunction) {
+    async getAllOrgs(req: Request, res: Response, next: NextFunction): Promise<Response<Org[]>> {
         logging.info('Getting all orgs');
 
         let dbQueryResult;
@@ -23,7 +23,7 @@ class OrgController {
     }
 
     @Route('post', '')
-    async createOrg(req: Request, res: Response, next: NextFunction) {
+    async createOrg(req: Request, res: Response, next: NextFunction): Promise<Response<Org>> {
         logging.info('Creating org');
         let avatar;
 
@@ -64,7 +64,7 @@ class OrgController {
     }
 
     @Route('put', '/:id/fancy')
-    async changeOrgStatus(req: Request, res: Response, next: NextFunction) {
+    async changeOrgStatus(req: Request, res: Response, next: NextFunction): Promise<Response<Org>> {
         logging.info('Updating org');
         const orgId = req.params.id;
 

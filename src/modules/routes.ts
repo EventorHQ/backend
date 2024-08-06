@@ -1,5 +1,5 @@
-import { Express } from 'express';
-import { RouteHandler } from '../lib/routes';
+import type { Express } from 'express';
+import { RouteHandler } from '../lib/routes.js';
 
 export function defineRoutes(controllers: any, application: Express) {
     for (let i = 0; i < controllers.length; i++) {
