@@ -12,29 +12,22 @@ function setInitData(res: Response, initData: InitDataParsed): void {
 }
 
 export const authHandler = (req: Request, res: Response, next: NextFunction) => {
-    if (DEVELOPMENT) {
-        return next();
-    }
-
-    const [authType, authData = ''] = (req.header('authorization') || '').split(' ');
+    console.log(req.header('Authorization'));
+    const [authType, authData = ''] = (req.header('Authorization') || '').split(' ');
 
     switch (authType) {
         case 'tma':
             try {
-                // Validate init data.
                 validate(authData, BOT_TOKEN, {
-                    // We consider init data sign valid for 1 hour from their creation moment.
-                    expiresIn: 3600
+                    expiresIn: DEVELOPMENT ? 0 : 3600
                 });
 
-                // Parse init data. We will surely need it in the future.
                 setInitData(res, parse(authData));
                 return next();
             } catch (e) {
-                return next(e);
+                return res.status(401).json({ status: 'error', message: 'Unauthorized' });
             }
-        // ... other authorization methods.
         default:
-            return next(new Error('Unauthorized'));
+            return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 };

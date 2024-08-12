@@ -1,16 +1,17 @@
 import type { NextFunction, Request, Response } from 'express';
-import { db } from '../db.js';
+import { db } from '../db';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
 import { PostUser } from '../models/user.js';
+import { getUserById } from '../db/queries';
 
 @Controller('/users')
 class UserController {
     @Route('get', '')
     async getAllUsers(req: Request, res: Response, next: NextFunction) {
         logging.info('Getting all users');
-        const users = await db.query('SELECT * FROM users');
-        return res.status(200).json(users.rows);
+        const users = await db.selectFrom('users').selectAll().execute();
+        return res.status(200).json(users);
     }
 
     @Route('post', '')
@@ -21,43 +22,45 @@ class UserController {
             return res.status(400).json({ status: 'error', errors: data.error });
         }
 
-        let dbQueryResult;
-        try {
-            dbQueryResult = await db.query(
-                'INSERT INTO users (id, first_name, last_name, is_admin, username) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-                [data.data.id, data.data.firstName, data.data.lastName, data.data.isAdmin, data.data.username]
-            );
-        } catch {
-            return res.status(400).json({ status: 'error', message: 'User already exists' });
-        }
+        const result = await db
+            .insertInto('users')
+            .values({
+                id: data.data.id,
+                first_name: data.data.firstName,
+                last_name: data.data.lastName,
+                is_admin: data.data.isAdmin || false,
+                username: data.data.username
+            })
+            .returningAll()
+            .execute();
 
-        return res.status(200).json(dbQueryResult.rows[0]);
+        return res.status(200).json(result[0]);
     }
 
     @Route('get', '/:id')
     async getUser(req: Request, res: Response, next: NextFunction) {
-        const userId = req.params.id;
+        const userId = Number(req.params.id);
         logging.info('Getting user ' + userId);
-        const result = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+        const result = await getUserById(userId);
 
-        if (result.rows.length < 1) {
+        if (!result) {
             return res.status(404).json({ status: 'error', message: 'User not found' });
         }
 
-        return res.status(200).json(result.rows[0]);
+        return res.status(200).json(result);
     }
 
     @Route('delete', '/:id')
     async deleteUser(req: Request, res: Response, next: NextFunction) {
-        const userId = req.params.id;
+        const userId = Number(req.params.id);
         logging.info('Deleting user ' + userId);
-        const result = await db.query('DELETE FROM users WHERE id = $1 RETURNING *', [userId]);
 
-        if (!result.rowCount || result.rowCount < 1) {
+        try {
+            await db.deleteFrom('users').where('id', '=', userId).execute();
+            return res.status(200).json({ status: 'ok' });
+        } catch {
             return res.status(404).json({ status: 'error', message: 'User not found' });
         }
-
-        return res.status(200).json({ status: 'ok' });
     }
 }
 

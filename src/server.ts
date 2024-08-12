@@ -43,12 +43,16 @@ export const main = async () => {
     logging.info('---------------------------------------------');
     application.use(loggingHandler);
     application.use(corsHandler);
-    application.use(authHandler);
 
     logging.info('---------------------------------------------');
     logging.info('Define Controller Routing');
+    logging.info('       - Public Routes');
+    defineRoutes([MainController], application);
+
+    logging.info('       - Private Routes');
     logging.info('---------------------------------------------');
-    defineRoutes([MainController, UserController, OrgController], application);
+    application.use(authHandler);
+    defineRoutes([UserController, OrgController], application);
 
     logging.info('---------------------------------------------');
     logging.info('Define Bot API');
