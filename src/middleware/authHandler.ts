@@ -12,7 +12,6 @@ function setInitData(res: Response, initData: InitDataParsed): void {
 }
 
 export const authHandler = (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.header('Authorization'));
     const [authType, authData = ''] = (req.header('Authorization') || '').split(' ');
 
     switch (authType) {

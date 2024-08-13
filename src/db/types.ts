@@ -1,6 +1,6 @@
 import { ColumnType, Generated, Selectable } from 'kysely';
 
-type OrgMemberRole = 'admin' | 'moderator' | 'member';
+export type OrgMemberRole = 'admin' | 'moderator' | 'member';
 
 export interface Database {
     users: UsersTable;
@@ -25,7 +25,7 @@ export interface OrgsTable {
     creator_id: number;
     title: string;
     description: string | null;
-    avatar_img: string | null;
+    avatar_img: string;
     is_fancy: boolean;
     created_at: Generated<Date>;
 }

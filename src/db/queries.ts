@@ -1,6 +1,6 @@
 import { db } from '.';
 import { sql } from 'kysely';
-import { Org, User } from './types';
+import { Org, OrgMemberRole, User } from './types';
 
 export async function getUserById(id: number) {
     const result = await db.selectFrom('users').where('id', '=', id).selectAll().executeTakeFirst();
@@ -39,23 +39,24 @@ export async function getOrgMembersByOrgId(id: number) {
 
 export async function getOrgWithMembersById(id: number) {
     const result = await db
-        .selectFrom('orgs')
+        .selectFrom('orgs as o')
+        .where('o.id', '=', id)
         .select([
-            'orgs.id',
-            'orgs.title',
-            'orgs.description',
-            'orgs.avatar_img',
-            'orgs.is_fancy',
-            'orgs.created_at',
+            'o.id',
+            'o.title',
+            'o.description',
+            'o.avatar_img',
+            'o.is_fancy',
+            'o.created_at',
             sql<
-                User[]
-            >`json_agg(json_build_object('id', u.id, 'first_name', u.first_name, 'last_name', u.last_name, 'username', u.username, 'photo_img', u.photo_img))`.as(
+                (User & { role: OrgMemberRole })[]
+            >`json_agg(json_build_object('id', u.id, 'first_name', u.first_name, 'last_name', u.last_name, 'username', u.username, 'photo_img', u.photo_img, 'role', org_members.role))`.as(
                 'members'
             )
         ])
-        .innerJoin('org_members', 'orgs.id', 'org_members.org_id')
+        .groupBy('o.id')
+        .innerJoin('org_members', 'org_members.org_id', 'o.id')
         .innerJoin('users as u', 'u.id', 'org_members.user_id')
-        .where('orgs.id', '=', id)
         .executeTakeFirst();
 
     return result;

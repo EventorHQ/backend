@@ -10,6 +10,11 @@ export const PostOrg = BaseOrg.extend({
     creatorId: z.number()
 });
 
+export const PatchOrg = z.object({
+    title: z.string().optional(),
+    description: z.string().optional()
+});
+
 export const Org = BaseOrg.merge(
     z.object({
         creatorId: z.number(),

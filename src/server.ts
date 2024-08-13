@@ -48,16 +48,16 @@ export const main = async () => {
     logging.info('Define Controller Routing');
     logging.info('       - Public Routes');
     defineRoutes([MainController], application);
+    defineBotApiProxy(application);
 
     logging.info('       - Private Routes');
     logging.info('---------------------------------------------');
     application.use(authHandler);
     defineRoutes([UserController, OrgController], application);
 
-    logging.info('---------------------------------------------');
-    logging.info('Define Bot API');
-    logging.info('---------------------------------------------');
-    defineBotApiProxy(application);
+    // logging.info('---------------------------------------------');
+    // logging.info('Define Bot API');
+    // logging.info('---------------------------------------------');
     // application.use(webhookCallback(bot, 'express'));
 
     application.use(routeNotFound);

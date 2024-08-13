@@ -1,12 +1,13 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
-import { Org, PostOrg } from '../models/org.js';
+import { BaseOrg, Org, PatchOrg, PostOrg } from '../models/org.js';
 import { readFileSync } from 'fs';
 import { db } from '../db';
 import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 import { getInitData } from '../utils/getInitData.js';
 import { getOrgWithMembersById, getUserById, getUserOrganizations } from '../db/queries.js';
+import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 
 @Controller('/orgs')
 class OrgController {
@@ -20,7 +21,25 @@ class OrgController {
         }
 
         const userId = initData.user.id;
-        const result = await getUserOrganizations(userId);
+        const orgs = await getUserOrganizations(userId);
+        const result = await Promise.all(
+            orgs.map(async (item) => {
+                const org = item.organization;
+                const avatar = await getPictureByFileId(org.avatar_img);
+
+                return {
+                    role: item.role,
+                    organization: {
+                        id: org.id,
+                        title: org.title,
+                        description: org.description,
+                        avatar: avatar,
+                        isFancy: org.is_fancy
+                    }
+                };
+            })
+        );
+
         return res.status(200).json(result);
     }
 
@@ -56,15 +75,41 @@ class OrgController {
             return res.status(404).json({ status: 'error', message: 'Organization not found' });
         }
 
-        if (result.members.some((member) => member.id === user.id)) {
-            return res.status(200).json(result);
+        const avatar = await getPictureByFileId(result.avatar_img);
+
+        if (result.members.findIndex((member) => member.id === user.id)) {
+            return res.status(200).json({
+                id: result.id,
+                title: result.title,
+                description: result.description,
+                avatar: avatar,
+                isFancy: result.is_fancy,
+                members: await Promise.all(
+                    result.members.map(async (member) => {
+                        const memberAvatar = member.username
+                            ? `https://t.me/i/userpic/320/${member.username}.jpg`
+                            : member.photo_img
+                            ? await getPictureByFileId(member.photo_img)
+                            : null;
+
+                        return {
+                            id: member.id,
+                            firstName: member.first_name,
+                            lastName: member.last_name,
+                            username: member.username,
+                            avatar: memberAvatar,
+                            role: member.role
+                        };
+                    })
+                )
+            });
         }
 
         return res.status(200).json({
             id: result.id,
             title: result.title,
             description: result.description,
-            avatar: result.avatar_img,
+            avatar: avatar,
             isFancy: result.is_fancy
         });
     }
@@ -124,18 +169,63 @@ class OrgController {
         return res.status(201).json(result);
     }
 
+    @Route('put', '/:id')
+    async editOrg(req: Request, res: Response, next: NextFunction): Promise<Response<Org>> {
+        const initData = getInitData(res);
+        if (!initData?.user?.id) {
+            return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+        }
+
+        const parsing = await PatchOrg.safeParse(req.body);
+        const id = Number(req.params.id);
+
+        if (!parsing.success) {
+            return res.status(400).json({ request: req.body, error: parsing.error });
+        }
+        const { data } = parsing;
+        let avatar;
+
+        if (req.files && !Array.isArray(req.files.avatar)) {
+            avatar = req.files.avatar;
+        }
+
+        const avatarData = avatar ? { avatar_img: await saveFileBuffer(readFileSync(avatar.tempFilePath)) } : {};
+
+        const result = await db
+            .updateTable('orgs')
+            .where('id', '=', id)
+            .set({
+                ...data,
+                ...avatarData
+            })
+            .returningAll()
+            .executeTakeFirst();
+
+        if (!result) {
+            return res.status(400).json({ request: req.body, error: 'Failed to update organization' });
+        }
+
+        return res.status(200).json(result);
+    }
+
     @Route('put', '/:id/fancy')
     async changeOrgStatus(req: Request, res: Response, next: NextFunction): Promise<Response<Org>> {
-        const orgId = Number(req.params.id);
-        logging.info(`Updating org ${orgId}`);
+        if (!req.params.id) {
+            return res.status(400).json({ request: req.body, error: 'Missing id' });
+        }
 
         if (!('isFancy' in req.body)) {
             return res.status(400).json({ request: req.body, error: 'Missing isFancy' });
         }
 
-        const result = await db.updateTable('orgs').set({ is_fancy: req.body.isFancy }).where('id', '=', orgId).execute();
+        const result = await db
+            .updateTable('orgs')
+            .set({ is_fancy: req.body.isFancy })
+            .where('id', '=', +req.params.id)
+            .returningAll()
+            .executeTakeFirst();
 
-        return res.status(204).json(result);
+        return res.status(200).json(result);
     }
 
     @Route('delete', '/:id')
