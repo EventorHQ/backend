@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
-import { db } from '../db';
+import { db } from '../db/index.js';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
 import { PostUser } from '../models/user.js';
-import { getUserById } from '../db/queries';
+import { getUserById } from '../db/queries.js';
 
 @Controller('/users')
 class UserController {

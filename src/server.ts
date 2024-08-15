@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import fileUpload from 'express-fileupload';
 import 'reflect-metadata';
-import './config/logging';
+import logging from './config/logging.js';
 
 import { SERVER } from './config/config.js';
 import { defineRoutes } from './modules/routes.js';

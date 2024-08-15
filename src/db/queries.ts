@@ -1,4 +1,4 @@
-import { db } from '.';
+import { db } from './index.js';
 import { sql } from 'kysely';
 import { Org, OrgMemberRole, User } from './types';
 

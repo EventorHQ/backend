@@ -13,18 +13,26 @@ export const SERVER = {
     HOSTNAME: SERVER_HOSTNAME
 };
 
-export const DB_HOST = process.env.DB_HOST || 'localhost';
-export const DB_PORT = process.env.DB_PORT ? +process.env.DB_PORT : 5432;
-export const DB_USER = process.env.DB_USER || 'postgres';
-export const DB_PASSWORD = process.env.DB_PASSWORD || 'password';
-export const DB_NAME = process.env.DB_NAME || 'eventor';
+// export const DB_HOST = process.env.DB_HOST || 'localhost';
+// export const DB_PORT = process.env.DB_PORT ? +process.env.DB_PORT : 5432;
+// export const DB_USER = process.env.DB_USER || 'postgres';
+// export const DB_PASSWORD = process.env.DB_PASSWORD || 'password';
+// export const DB_NAME = process.env.DB_NAME || 'eventor';
+export const POSTGRES_URL = process.env.POSTGRES_URL;
+export const POSTGRES_PRISMA_URL = process.env.POSTGRES_PRISMA_URL;
+export const POSTGRES_URL_NO_SSL = process.env.POSTGRES_URL_NO_SSL;
+export const POSTGRES_URL_NON_POOLING = process.env.POSTGRES_URL_NON_POOLING;
+export const POSTGRES_USER = process.env.POSTGRES_USER;
+export const POSTGRES_HOST = process.env.POSTGRES_HOST;
+export const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD;
+export const POSTGRES_DATABASE = process.env.POSTGRES_DATABASE;
 
 export const DB = {
-    HOST: DB_HOST,
-    PORT: DB_PORT,
-    USER: DB_USER,
-    PASSWORD: DB_PASSWORD,
-    NAME: DB_NAME
+    HOST: POSTGRES_HOST,
+    USER: POSTGRES_USER,
+    PASSWORD: POSTGRES_PASSWORD,
+    NAME: POSTGRES_DATABASE,
+    URL: POSTGRES_URL
 };
 
 export const BOT_TOKEN = process.env.BOT_TOKEN || '';

@@ -3,7 +3,7 @@ import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
 import { BaseOrg, Org, PatchOrg, PostOrg } from '../models/org.js';
 import { readFileSync } from 'fs';
-import { db } from '../db';
+import { db } from '../db/index.js';
 import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 import { getInitData } from '../utils/getInitData.js';
 import { getOrgWithMembersById, getUserById, getUserOrganizations } from '../db/queries.js';
