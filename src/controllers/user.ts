@@ -31,6 +31,14 @@ class UserController {
                 is_admin: data.data.isAdmin || false,
                 username: data.data.username
             })
+            .onConflict((oc) =>
+                oc.column('id').doUpdateSet({
+                    first_name: data.data.firstName,
+                    last_name: data.data.lastName,
+                    is_admin: data.data.isAdmin || false,
+                    username: data.data.username
+                })
+            )
             .returningAll()
             .execute();
 
