@@ -17,7 +17,7 @@ async function migrateToLatest() {
         provider: new FileMigrationProvider({
             fs,
             path,
-            migrationFolder: path.join(path.dirname(fileURLToPath(import.meta.url)), '../migrations')
+            migrationFolder: path.join(path.dirname(fileURLToPath(import.meta.url)), '../../migrations')
         })
     });
 
