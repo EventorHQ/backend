@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { BOT_TOKEN } from '../config/config';
+import { BOT_TOKEN } from '../config/config.js';
 
 const SECRET = crypto.createHash('sha256').update(BOT_TOKEN).digest('hex').slice(0, 32);
 

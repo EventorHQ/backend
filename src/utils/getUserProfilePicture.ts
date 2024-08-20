@@ -1,5 +1,5 @@
 import { User } from '../db/types';
-import { getPictureByFileId } from './getPictureByFileId';
+import { getPictureByFileId } from './getPictureByFileId.js';
 
 export async function getUserProfilePicture(user: User) {
     if (user.username) {
