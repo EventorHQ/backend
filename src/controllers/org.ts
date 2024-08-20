@@ -6,8 +6,10 @@ import { readFileSync } from 'fs';
 import { db } from '../db/index.js';
 import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 import { getInitData } from '../utils/getInitData.js';
-import { getOrgWithMembersById, getUserById, getUserOrganizations } from '../db/queries.js';
+import { addUserToOrg, getOrgById, getOrgWithMembersById, getUserById, getUserOrganizations } from '../db/queries.js';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
+import { invitationSchema } from '../models/invitation.js';
+import { encrypt } from '../lib/encryption.js';
 
 @Controller('/orgs')
 class OrgController {
@@ -157,14 +159,7 @@ class OrgController {
             return res.status(400).json({ request: req.body, error: 'Organization already exists' });
         }
 
-        await db
-            .insertInto('org_members')
-            .values({
-                org_id: result.id,
-                user_id: data.creatorId,
-                role: 'admin'
-            })
-            .execute();
+        await addUserToOrg(data.creatorId, result.id, 'admin');
 
         return res.status(201).json(result);
     }

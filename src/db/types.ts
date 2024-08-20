@@ -6,6 +6,7 @@ export interface Database {
     users: UsersTable;
     orgs: OrgsTable;
     org_members: OrgMembersTable;
+    invites: InvitesTable;
 }
 
 export interface UsersTable {
@@ -39,3 +40,12 @@ export interface OrgMembersTable {
     role: OrgMemberRole;
     created_at: Generated<Date>;
 }
+
+export interface InvitesTable {
+    id: string;
+    org_id: number;
+    inviter_id: number;
+    role: OrgMemberRole;
+}
+
+export type Invite = Selectable<InvitesTable>;

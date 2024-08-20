@@ -21,6 +21,7 @@ import UserController from './controllers/user.js';
 // logging.info('Initializing BOT');
 // logging.info('---------------------------------------------');
 import { defineBotApiProxy } from './modules/botApiProxy.js';
+import InvitationController from './controllers/invitation.js';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -53,7 +54,7 @@ export const main = async () => {
     logging.info('       - Private Routes');
     logging.info('---------------------------------------------');
     application.use(authHandler);
-    defineRoutes([UserController, OrgController], application);
+    defineRoutes([UserController, OrgController, InvitationController], application);
 
     // logging.info('---------------------------------------------');
     // logging.info('Define Bot API');
