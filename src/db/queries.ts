@@ -82,6 +82,12 @@ export async function getUserOrganizations(userId: number) {
 }
 
 export async function addUserToOrg(userId: number, orgId: number, role: OrgMemberRole = 'member') {
+    const existingEntry = await db.selectFrom('org_members').where('user_id', '=', userId).where('org_id', '=', orgId).selectAll().executeTakeFirst();
+
+    if (existingEntry) {
+        return { error: 'User already in this organization' };
+    }
+
     return await db
         .insertInto('org_members')
         .values({

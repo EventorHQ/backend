@@ -78,6 +78,8 @@ class InvitationController {
 
         if (!result) {
             return res.status(400).json({ request: req.body, error: 'Failed to add user to organization' });
+        } else if ('error' in result) {
+            return res.status(400).json({ status: 'error', message: result.error });
         }
 
         return res.status(200).json(result);
