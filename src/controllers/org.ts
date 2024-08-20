@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import { db } from '../db/index.js';
 import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 import { getInitData } from '../utils/getInitData.js';
-import { addUserToOrg, getOrgById, getOrgWithMembersById, getUserById, getUserOrganizations } from '../db/queries.js';
+import { addUserToOrg, deleteOrganization, getOrgById, getOrgWithMembersById, getUserById, getUserOrganizations } from '../db/queries.js';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 import { invitationSchema } from '../models/invitation.js';
 import { encrypt } from '../lib/encryption.js';
@@ -227,14 +227,9 @@ class OrgController {
     async deleteOrg(req: Request, res: Response, next: NextFunction) {
         const orgId = Number(req.params.id);
         logging.info(`Deleting org ${orgId}`);
+        await deleteOrganization(orgId);
 
-        try {
-            await db.deleteFrom('orgs').where('id', '=', orgId).execute();
-        } catch {
-            return res.status(404).json({ request: req.body, error: 'Organization not found' });
-        }
-
-        return res.status(204).json({ status: 'ok' });
+        return res.status(200).json({ status: 'ok' });
     }
 }
 

@@ -100,9 +100,7 @@ export async function getInvite(id: string) {
         .select([
             'invites.id',
             'role',
-            sql<User>`json_build_object('id', u.id,'first_name', u.first_name, 'last_name', u.last_name, 'username', u.username, 'photo_img', u.photo_img)`.as(
-                'inviter'
-            ),
+            sql<User>`json_build_object('id', u.id,'first_name', u.first_name, 'last_name', u.last_name)`.as('inviter'),
             sql<Org>`json_build_object('id', o.id, 'title', o.title, 'avatar_img', o.avatar_img, 'is_fancy', o.is_fancy)`.as('org')
         ])
         .innerJoin('users as u', 'invites.inviter_id', 'u.id')
@@ -111,8 +109,6 @@ export async function getInvite(id: string) {
 
     if (!result) return null;
 
-    const inviterPhoto = await getUserProfilePicture(result.inviter);
-    result.inviter.photo_img = inviterPhoto;
     const orgPhoto = await getPictureByFileId(result.org.avatar_img);
     result.org.avatar_img = orgPhoto;
 
@@ -130,4 +126,10 @@ export async function createInvite(orgId: number, inviterId: number, role: OrgMe
         })
         .returning('id')
         .executeTakeFirst();
+}
+
+export async function deleteOrganization(orgId: number) {
+    await db.deleteFrom('org_members').where('org_id', '=', orgId).execute();
+    await db.deleteFrom('invites').where('org_id', '=', orgId).execute();
+    await db.deleteFrom('orgs').where('id', '=', orgId).execute();
 }
