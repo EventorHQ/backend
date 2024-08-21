@@ -1,9 +1,9 @@
 import { db } from './index.js';
 import { sql } from 'kysely';
-import { Invite, Org, OrgMemberRole, User } from './types';
+import { Org, OrgMemberRole, User } from './types';
 import { randomUUID } from 'crypto';
-import { getUserProfilePicture } from '../utils/getUserProfilePicture.js';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
+import { EventCreateData } from '../models/event.js';
 
 export async function getUserById(id: number) {
     const result = await db.selectFrom('users').where('id', '=', id).selectAll().executeTakeFirst();
@@ -138,4 +138,34 @@ export async function deleteOrganization(orgId: number) {
     await db.deleteFrom('org_members').where('org_id', '=', orgId).execute();
     await db.deleteFrom('invites').where('org_id', '=', orgId).execute();
     await db.deleteFrom('orgs').where('id', '=', orgId).execute();
+}
+
+export async function getAllEvents() {
+    const result = await db.selectFrom('events').selectAll().execute();
+
+    return result;
+}
+
+export async function getUserEvents(userId: number) {
+    return [];
+}
+
+export async function createEvent(data: EventCreateData & { cover: string; creatorId: number }) {
+    const result = await db
+        .insertInto('events')
+        .values({
+            org_id: data.org_id,
+            creator_id: data.creatorId,
+            title: data.title,
+            description: data.description,
+            cover_img: data.cover,
+            location: data.location,
+            start_time: data.start_time,
+            end_time: data.end_time,
+            form: data.form
+        })
+        .returningAll()
+        .executeTakeFirst();
+
+    return result;
 }

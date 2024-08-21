@@ -1,4 +1,4 @@
-import { ColumnType, Generated, Selectable } from 'kysely';
+import { ColumnType, Generated, JSONColumnType, Selectable } from 'kysely';
 
 export type OrgMemberRole = 'admin' | 'moderator' | 'member';
 
@@ -7,6 +7,7 @@ export interface Database {
     orgs: OrgsTable;
     org_members: OrgMembersTable;
     invites: InvitesTable;
+    events: EventsTable;
 }
 
 export interface UsersTable {
@@ -49,3 +50,19 @@ export interface InvitesTable {
 }
 
 export type Invite = Selectable<InvitesTable>;
+
+export interface EventsTable {
+    id: Generated<number>;
+    org_id: number;
+    creator_id: number;
+    title: string;
+    description: string;
+    cover_img: string;
+    location: string;
+    start_time: Date;
+    end_time: Date;
+    form: unknown;
+    created_at: Generated<Date>;
+}
+
+export type Event = Selectable<EventsTable>;
