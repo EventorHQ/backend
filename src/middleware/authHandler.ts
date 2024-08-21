@@ -17,7 +17,7 @@ export const authHandler = (req: Request, res: Response, next: NextFunction) => 
     switch (authType) {
         case 'tma':
             try {
-                validate(authData, BOT_TOKEN, {
+                validate(authData, DEVELOPMENT ? `${process.env.LOCAL_BOT_TOKEN}` : BOT_TOKEN, {
                     expiresIn: DEVELOPMENT ? 0 : 3600
                 });
 

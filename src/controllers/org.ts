@@ -10,6 +10,7 @@ import { addUserToOrg, deleteOrganization, getOrgById, getOrgWithMembersById, ge
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 import { invitationSchema } from '../models/invitation.js';
 import { encrypt } from '../lib/encryption.js';
+import { getUserProfilePicture } from '../utils/getUserProfilePicture.js';
 
 @Controller('/orgs')
 class OrgController {
@@ -88,11 +89,7 @@ class OrgController {
                 isFancy: result.is_fancy,
                 members: await Promise.all(
                     result.members.map(async (member) => {
-                        const memberAvatar = member.username
-                            ? `https://t.me/i/userpic/320/${member.username}.jpg`
-                            : member.photo_img
-                            ? await getPictureByFileId(member.photo_img)
-                            : null;
+                        const memberAvatar = await getUserProfilePicture(member);
 
                         return {
                             id: member.id,
