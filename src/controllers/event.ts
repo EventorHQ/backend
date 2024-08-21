@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
-import { createEvent, getAllEvents, getUserEvents } from '../db/queries.js';
+import { createEvent, deleteEvent, getAllEvents, getUserEvents } from '../db/queries.js';
 import { getInitData } from '../utils/getInitData.js';
 import { eventCreateSchema } from '../models/event.js';
 import { readFileSync } from 'fs';
@@ -46,7 +46,13 @@ class EventController {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const body = eventCreateSchema.safeParse(req.body);
+        const body = eventCreateSchema.safeParse({
+            ...req.body,
+            org_id: Number(req.body.org_id),
+            form: {},
+            start_date: new Date(req.body.start_date),
+            end_date: new Date(req.body.start_date)
+        });
         let cover;
 
         if (!body.success) {
@@ -70,6 +76,17 @@ class EventController {
         }
 
         return res.status(201).json(result);
+    }
+
+    @Route('delete', '/:id')
+    async deleteEvent(req: Request, res: Response, next: NextFunction) {
+        const result = await deleteEvent(Number(req.params.id));
+
+        if (!result) {
+            return res.status(400).json({ request: req.body, error: 'Failed to delete event' });
+        }
+
+        return res.status(200).json(result);
     }
 }
 

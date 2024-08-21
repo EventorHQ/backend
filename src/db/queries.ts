@@ -160,12 +160,16 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
             description: data.description,
             cover_img: data.cover,
             location: data.location,
-            start_time: data.start_time,
-            end_time: data.end_time,
+            start_date: data.start_date,
+            end_date: data.end_date,
             form: data.form
         })
         .returningAll()
         .executeTakeFirst();
 
     return result;
+}
+
+export async function deleteEvent(id: number) {
+    return await db.deleteFrom('events').where('id', '=', id).returningAll().executeTakeFirst();
 }

@@ -59,8 +59,8 @@ export interface EventsTable {
     description: string;
     cover_img: string;
     location: string;
-    start_time: Date;
-    end_time: Date;
+    start_date: Date;
+    end_date: Date;
     form: unknown;
     created_at: Generated<Date>;
 }
