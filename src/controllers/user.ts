@@ -3,20 +3,18 @@ import { db } from '../db/index.js';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
 import { PostUser } from '../models/user.js';
-import { getUserById } from '../db/queries.js';
+import { deleteUser, getUserById } from '../db/queries.js';
 
 @Controller('/users')
 class UserController {
     @Route('get', '')
     async getAllUsers(req: Request, res: Response, next: NextFunction) {
-        logging.info('Getting all users');
         const users = await db.selectFrom('users').selectAll().execute();
         return res.status(200).json(users);
     }
 
     @Route('post', '')
     async createUser(req: Request, res: Response, next: NextFunction) {
-        logging.info('Creating user');
         const data = PostUser.safeParse(req.body);
         if (!data.success) {
             return res.status(400).json({ status: 'error', errors: data.error });
@@ -47,9 +45,7 @@ class UserController {
 
     @Route('get', '/:id')
     async getUser(req: Request, res: Response, next: NextFunction) {
-        const userId = Number(req.params.id);
-        logging.info('Getting user ' + userId);
-        const result = await getUserById(userId);
+        const result = await getUserById(Number(req.params.id));
 
         if (!result) {
             return res.status(404).json({ status: 'error', message: 'User not found' });
@@ -60,15 +56,13 @@ class UserController {
 
     @Route('delete', '/:id')
     async deleteUser(req: Request, res: Response, next: NextFunction) {
-        const userId = Number(req.params.id);
-        logging.info('Deleting user ' + userId);
+        const result = await deleteUser(Number(req.params.id));
 
-        try {
-            await db.deleteFrom('users').where('id', '=', userId).execute();
-            return res.status(200).json({ status: 'ok' });
-        } catch {
+        if (!result) {
             return res.status(404).json({ status: 'error', message: 'User not found' });
         }
+
+        return res.status(200).json(result);
     }
 }
 

@@ -11,3 +11,11 @@ export const eventCreateSchema = z.object({
 });
 
 export type EventCreateData = z.infer<typeof eventCreateSchema>;
+
+export const eventEnlistSchema = z.object({
+    event_id: z.number(),
+    user_id: z.number(),
+    form: z.object({}).passthrough()
+});
+
+export type EventEnlistData = z.infer<typeof eventEnlistSchema>;

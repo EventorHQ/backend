@@ -1,11 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
-import { createEvent, deleteEvent, getAllEvents, getUserEvents } from '../db/queries.js';
+import { checkin, createEvent, deleteEvent, enlist, getAllEvents, getUserEvents } from '../db/queries.js';
 import { getInitData } from '../utils/getInitData.js';
-import { eventCreateSchema } from '../models/event.js';
+import { eventCreateSchema, eventEnlistSchema } from '../models/event.js';
 import { readFileSync } from 'fs';
 import { saveFileBuffer } from '../utils/saveFileBuffer.js';
+import { isAllowedToPerformCheckin } from '../utils/isAllowedToPerformCheckin.js';
+import { parse as parseInitData, validate } from '@telegram-apps/init-data-node';
+import { BOT_TOKEN, DEVELOPMENT } from '../config/config.js';
 
 @Controller('/events')
 class EventController {
@@ -27,7 +30,7 @@ class EventController {
         return res.status(200).json(result);
     }
 
-    @Route('get', '/neares')
+    @Route('get', '/nearest')
     async getNearestEvent(req: Request, res: Response, next: NextFunction) {
         const initData = getInitData(res);
 
@@ -87,6 +90,74 @@ class EventController {
         }
 
         return res.status(200).json(result);
+    }
+
+    @Route('post', '/:id/enlist')
+    async enlistToEvent(req: Request, res: Response, next: NextFunction) {
+        const initData = getInitData(res);
+
+        if (!initData?.user?.id) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const body = eventEnlistSchema.safeParse({
+            ...req.body,
+            event_id: Number(req.params.id),
+            user_id: initData.user.id
+        });
+
+        if (!body.success) {
+            return res.status(400).json({ error: body.error });
+        }
+
+        const { data } = body;
+        const result = await enlist({
+            eventId: data.event_id,
+            userId: data.user_id,
+            form: data.form
+        });
+
+        if (!result) {
+            return res.status(400).json({ request: req.body, error: 'Failed to enlist' });
+        }
+
+        return res.status(200).json(result);
+    }
+
+    @Route('post', '/:id/checkin')
+    async checkinToEvent(req: Request, res: Response, next: NextFunction) {
+        const initData = getInitData(res);
+
+        if (!initData?.user?.id) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const isAllowed = await isAllowedToPerformCheckin(Number(req.params.id), initData.user.id);
+
+        if (!isAllowed) {
+            return res.status(403).json({ error: 'You are not allowed to perform checkin' });
+        }
+
+        try {
+            const userInitData = parseInitData(req.body);
+            if (!userInitData.user?.id) {
+                return res.status(400).json({ request: req.body, error: 'Missing user id' });
+            }
+
+            validate(userInitData, DEVELOPMENT ? `${process.env.LOCAL_BOT_TOKEN}` : BOT_TOKEN, {
+                expiresIn: DEVELOPMENT ? 0 : 3600
+            });
+
+            const result = await checkin(Number(req.params.id), userInitData.user.id);
+
+            if (!result) {
+                return res.status(400).json({ request: req.body, error: 'Failed to perform checkin' });
+            }
+
+            return res.status(200).json(result);
+        } catch (e) {
+            return res.status(400).json({ request: req.body, error: JSON.stringify(e) });
+        }
     }
 }
 

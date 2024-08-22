@@ -1,6 +1,6 @@
 import { db } from './index.js';
 import { sql } from 'kysely';
-import { Org, OrgMemberRole, User } from './types';
+import { Event, Org, OrgMemberRole, User } from './types';
 import { randomUUID } from 'crypto';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 import { EventCreateData } from '../models/event.js';
@@ -99,6 +99,14 @@ export async function addUserToOrg(userId: number, orgId: number, role: OrgMembe
         .executeTakeFirst();
 }
 
+export async function deleteUser(userId: number) {
+    await db.deleteFrom('org_members').where('user_id', '=', userId).execute();
+    await db.deleteFrom('invites').where('inviter_id', '=', userId).execute();
+    await db.deleteFrom('event_visitors').where('user_id', '=', userId).execute();
+    await db.deleteFrom('events').where('creator_id', '=', userId).execute();
+    return await db.deleteFrom('users').where('id', '=', userId).returningAll().executeTakeFirst();
+}
+
 export async function getInvite(id: string) {
     const result = await db
         .selectFrom('invites')
@@ -135,9 +143,10 @@ export async function createInvite(orgId: number, inviterId: number, role: OrgMe
 }
 
 export async function deleteOrganization(orgId: number) {
+    await db.deleteFrom('events').where('org_id', '=', orgId).execute();
     await db.deleteFrom('org_members').where('org_id', '=', orgId).execute();
     await db.deleteFrom('invites').where('org_id', '=', orgId).execute();
-    await db.deleteFrom('orgs').where('id', '=', orgId).execute();
+    return await db.deleteFrom('orgs').where('id', '=', orgId).returningAll().executeTakeFirst();
 }
 
 export async function getAllEvents() {
@@ -146,8 +155,28 @@ export async function getAllEvents() {
     return result;
 }
 
+export async function getUserCreatedEvents(userId: number) {
+    return await db.selectFrom('events').where('creator_id', '=', userId).selectAll().execute();
+}
+
 export async function getUserEvents(userId: number) {
-    return [];
+    const attendedEvents = await db
+        .selectFrom('event_visitors')
+        .where('user_id', '=', userId)
+        .select([
+            'check_in_date',
+            'event_visitors.form',
+            'event_visitors.created_at',
+            sql<
+                Pick<Event, 'title' | 'description' | 'cover_img' | 'location' | 'start_date' | 'end_date'>
+            >`json_build_object('id', events.id, 'title', events.title, 'cover_img', events.cover_img, 'location', events.location, 'start_date', events.start_date, 'end_date', events.end_date, 'description', events.description)`.as(
+                'event'
+            )
+        ])
+        .innerJoin('events', 'event_visitors.event_id', 'events.id')
+        .execute();
+
+    return attendedEvents;
 }
 
 export async function createEvent(data: EventCreateData & { cover: string; creatorId: number }) {
@@ -171,5 +200,29 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
 }
 
 export async function deleteEvent(id: number) {
+    await db.deleteFrom('event_visitors').where('event_id', '=', id).execute();
     return await db.deleteFrom('events').where('id', '=', id).returningAll().executeTakeFirst();
+}
+
+export async function enlist({ eventId, userId, form }: { eventId: number; userId: number; form: unknown }) {
+    return await db
+        .insertInto('event_visitors')
+        .values({
+            event_id: eventId,
+            user_id: userId,
+            form: form,
+            check_in_date: null
+        })
+        .returningAll()
+        .executeTakeFirst();
+}
+
+export async function checkin(eventId: number, userId: number) {
+    return await db
+        .updateTable('event_visitors')
+        .set({ check_in_date: new Date() })
+        .where('event_id', '=', eventId)
+        .where('user_id', '=', userId)
+        .returningAll()
+        .executeTakeFirst();
 }
