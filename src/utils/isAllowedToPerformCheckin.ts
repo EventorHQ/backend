@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { db } from '../db/index.js';
 
 export async function isAllowedToPerformCheckin(eventId: number, userId: number) {
     const userOrgsMemberships = await db.selectFrom('org_members').where('user_id', '=', userId).selectAll().execute();
