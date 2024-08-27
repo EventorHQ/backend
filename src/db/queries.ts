@@ -160,25 +160,48 @@ export async function getUserCreatedEvents(userId: number) {
 }
 
 export async function getUserEvents(userId: number) {
-    const attendedEvents = await db
-        .selectFrom('event_visitors')
-        .where('user_id', '=', userId)
+    const visitorEventsQuery = db
+        .selectFrom('events')
+        .innerJoin('event_visitors', 'events.id', 'event_visitors.event_id')
         .select([
-            'check_in_date',
-            'event_visitors.form',
-            'event_visitors.created_at',
-            sql<
-                Pick<Event, 'title' | 'description' | 'cover_img' | 'location' | 'start_date' | 'end_date'>
-            >`json_build_object('id', events.id, 'title', events.title, 'cover_img', events.cover_img, 'location', events.location, 'start_date', events.start_date, 'end_date', events.end_date, 'description', events.description)`.as(
-                'event'
-            )
+            'events.id as event_id',
+            'events.creator_id',
+            'events.title',
+            'events.description',
+            'events.cover_img',
+            'events.location',
+            'events.start_date',
+            'events.end_date',
+            'events.created_at',
+            sql<'creator' | 'visitor'>`'visitor'`.as('role')
         ])
-        .innerJoin('events', 'event_visitors.event_id', 'events.id')
+        .where('event_visitors.user_id', '=', userId);
+
+    const creatorEventsQuery = db
+        .selectFrom('events')
+        .select([
+            'events.id as event_id',
+            'events.creator_id',
+            'events.title',
+            'events.description',
+            'events.cover_img',
+            'events.location',
+            'events.start_date',
+            'events.end_date',
+            'events.created_at',
+            sql<'creator' | 'visitor'>`'creator'`.as('role')
+        ])
+        .where('events.creator_id', '=', userId);
+
+    const events = await db
+        .selectFrom(visitorEventsQuery.union(creatorEventsQuery).as('user_events'))
+        .selectAll()
+        .orderBy('created_at', 'desc')
+        .limit(10)
         .execute();
 
-    return attendedEvents;
+    return events;
 }
-
 export async function createEvent(data: EventCreateData & { cover: string; creatorId: number }) {
     const result = await db
         .insertInto('events')

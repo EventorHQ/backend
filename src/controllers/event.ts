@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
-import { checkin, createEvent, deleteEvent, enlist, getAllEvents, getUserEvents } from '../db/queries.js';
+import { checkin, createEvent, deleteEvent, enlist, getAllEvents, getUserCreatedEvents, getUserEvents } from '../db/queries.js';
 import { getInitData } from '../utils/getInitData.js';
 import { eventCreateSchema, eventEnlistSchema } from '../models/event.js';
 import { readFileSync } from 'fs';
@@ -9,6 +9,7 @@ import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 import { isAllowedToPerformCheckin } from '../utils/isAllowedToPerformCheckin.js';
 import { parse as parseInitData, validate } from '@telegram-apps/init-data-node';
 import { BOT_TOKEN, DEVELOPMENT } from '../config/config.js';
+import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 
 @Controller('/events')
 class EventController {
@@ -26,7 +27,13 @@ class EventController {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const result = await getUserEvents(initData.user.id);
+        const events = await getUserEvents(initData.user.id);
+        const result = await Promise.all(
+            events.map(async (event) => ({
+                ...event,
+                cover_img: await getPictureByFileId(event.cover_img)
+            }))
+        );
         return res.status(200).json(result);
     }
 
@@ -144,7 +151,7 @@ class EventController {
                 return res.status(400).json({ request: req.body, error: 'Missing user id' });
             }
 
-            validate(userInitData, DEVELOPMENT ? `${process.env.LOCAL_BOT_TOKEN}` : BOT_TOKEN, {
+            validate(userInitData, BOT_TOKEN, {
                 expiresIn: DEVELOPMENT ? 0 : 3600
             });
 
