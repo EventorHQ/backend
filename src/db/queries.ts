@@ -249,3 +249,45 @@ export async function checkin(eventId: number, userId: number) {
         .returningAll()
         .executeTakeFirst();
 }
+
+export async function getEventById(id: number, userId: number) {
+    const result = await db
+        .selectFrom('events')
+        .where('events.id', '=', id)
+        .select([
+            'events.id',
+            'events.title',
+            'events.description',
+            'events.cover_img',
+            'events.location',
+            'events.start_date',
+            'events.end_date',
+            'events.created_at',
+            sql<Org>`json_build_object('id', o.id, 'title', o.title, 'is_fancy', o.is_fancy)`.as('org'),
+            sql<'creator' | 'visitor' | 'seeker'>`
+                CASE 
+                    WHEN events.creator_id = ${userId} THEN 'creator'
+                    WHEN EXISTS (
+                        SELECT 1 FROM org_members 
+                        WHERE org_members.org_id = events.org_id 
+                        AND org_members.user_id = ${userId}
+                    ) THEN 'creator'
+                    WHEN EXISTS (
+                        SELECT 1 FROM event_visitors 
+                        WHERE event_visitors.event_id = events.id 
+                        AND event_visitors.user_id = ${userId}
+                    ) THEN 'visitor'
+                    ELSE 'seeker'
+                END
+            `.as('role')
+        ])
+        .innerJoin('orgs as o', 'events.org_id', 'o.id')
+        .executeTakeFirst();
+
+    if (!result) return null;
+
+    const cover = await getPictureByFileId(result.cover_img);
+    result.cover_img = cover;
+
+    return result;
+}

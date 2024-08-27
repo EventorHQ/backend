@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
-import { checkin, createEvent, deleteEvent, enlist, getAllEvents, getUserCreatedEvents, getUserEvents } from '../db/queries.js';
+import { checkin, createEvent, deleteEvent, enlist, getAllEvents, getEventById, getUserCreatedEvents, getUserEvents } from '../db/queries.js';
 import { getInitData } from '../utils/getInitData.js';
 import { eventCreateSchema, eventEnlistSchema } from '../models/event.js';
 import { readFileSync } from 'fs';
@@ -37,15 +37,17 @@ class EventController {
         return res.status(200).json(result);
     }
 
-    @Route('get', '/nearest')
-    async getNearestEvent(req: Request, res: Response, next: NextFunction) {
+    @Route('get', '/:id')
+    async getEventById(req: Request, res: Response, next: NextFunction) {
         const initData = getInitData(res);
 
         if (!initData?.user?.id) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        return res.status(200).json({ status: 'ok' });
+        const event = await getEventById(+req.params.id, initData.user.id);
+
+        return res.status(200).json(event);
     }
 
     @Route('post')
