@@ -291,3 +291,38 @@ export async function getEventById(id: number, userId: number) {
 
     return result;
 }
+
+// null OR
+// id: 123,
+// visitors: {
+//      checked_in: 123,
+//      registered: 213,
+// }
+// comments: 123123123,
+// start_date: asjdkl
+
+export async function getEventAdministrationDetails(id: number, userId: number) {
+    const result = await db
+        .selectFrom('events')
+        .where('events.id', '=', id)
+        .select([
+            'events.id',
+            'events.start_date',
+
+            sql<'allowed' | 'not_allowed'>`
+                CASE 
+                    WHEN events.creator_id = ${userId} THEN 'allowed'
+                    WHEN EXISTS (
+                        SELECT 1 FROM org_members 
+                        WHERE org_members.org_id = events.org_id 
+                        AND org_members.user_id = ${userId}
+                    ) THEN 'allowed'
+                    ELSE 'not_allowed'
+                END
+            `.as('auth')
+        ])
+        .innerJoin('orgs as o', 'events.org_id', 'o.id')
+        .executeTakeFirst();
+
+    return result;
+}
