@@ -1,5 +1,6 @@
 import { db } from './index.js';
 import { sql } from 'kysely';
+import { jsonBuildObject } from 'kysely/helpers/postgres';
 import { Event, Org, OrgMemberRole, User } from './types';
 import { randomUUID } from 'crypto';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
@@ -292,36 +293,20 @@ export async function getEventById(id: number, userId: number) {
     return result;
 }
 
-// null OR
-// id: 123,
-// visitors: {
-//      checked_in: 123,
-//      registered: 213,
-// }
-// comments: 123123123,
-// start_date: asjdkl
-
-export async function getEventAdministrationDetails(id: number, userId: number) {
+export async function getEventAdministrationDetails(id: number) {
     const result = await db
-        .selectFrom('events')
-        .where('events.id', '=', id)
-        .select([
+        .selectFrom('event_visitors')
+        .innerJoin('users', 'event_visitors.user_id', 'users.id')
+        .innerJoin('events', 'event_visitors.event_id', 'events.id')
+        .where('event_visitors.event_id', '=', id)
+        .select(({ fn }) => [
             'events.id',
             'events.start_date',
-
-            sql<'allowed' | 'not_allowed'>`
-                CASE 
-                    WHEN events.creator_id = ${userId} THEN 'allowed'
-                    WHEN EXISTS (
-                        SELECT 1 FROM org_members 
-                        WHERE org_members.org_id = events.org_id 
-                        AND org_members.user_id = ${userId}
-                    ) THEN 'allowed'
-                    ELSE 'not_allowed'
-                END
-            `.as('auth')
+            fn.countAll().over().as('total_visitors'),
+            fn.count('check_in_date').over().as('total_checked_in_visitors'),
+            fn.jsonAgg('users').over().as('all_visitors'),
+            fn.jsonAgg('users').filterWhere('event_visitors.check_in_date', 'is not', null).over().as('checked_in_visitors')
         ])
-        .innerJoin('orgs as o', 'events.org_id', 'o.id')
         .executeTakeFirst();
 
     return result;

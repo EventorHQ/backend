@@ -17,9 +17,9 @@ import { eventCreateSchema, eventEnlistSchema } from '../models/event.js';
 import { readFileSync } from 'fs';
 import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 import { isAllowedToPerformCheckin } from '../utils/isAllowedToPerformCheckin.js';
-import { parse as parseInitData, validate } from '@telegram-apps/init-data-node';
-import { BOT_TOKEN, DEVELOPMENT } from '../config/config.js';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
+import { parse, validate } from '@telegram-apps/init-data-node';
+import { BOT_TOKEN, DEVELOPMENT } from '../config/config.js';
 
 @Controller('/events')
 class EventController {
@@ -68,14 +68,16 @@ class EventController {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        const event = await getEventAdministrationDetails(+req.params.id, initData.user.id);
+        const isAllowed = await isAllowedToPerformCheckin(Number(req.params.id), initData.user.id);
 
-        if (!event) {
-            return res.status(404).json({ error: 'Event not found' });
+        if (!isAllowed) {
+            return res.status(403).json({ error: 'You are not allowed to view this information' });
         }
 
-        if (event.auth === 'not_allowed') {
-            return res.status(401).json({ error: 'Unauthorized' });
+        const event = await getEventAdministrationDetails(+req.params.id);
+
+        if (!event) {
+            return res.status(404).json({ error: 'Event not found or no users registered' });
         }
 
         return res.status(200).json(event);
@@ -133,7 +135,7 @@ class EventController {
     }
 
     @Route('post', '/:id/register')
-    async enlistToEvent(req: Request, res: Response, next: NextFunction) {
+    async registerToEvent(req: Request, res: Response, next: NextFunction) {
         const initData = getInitData(res);
 
         if (!initData?.user?.id) {
@@ -172,6 +174,10 @@ class EventController {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
+        if (!req.body.user) {
+            return res.status(400).json({ request: req.body, error: 'Missing user information' });
+        }
+
         const isAllowed = await isAllowedToPerformCheckin(Number(req.params.id), initData.user.id);
 
         if (!isAllowed) {
@@ -179,14 +185,14 @@ class EventController {
         }
 
         try {
-            const userInitData = parseInitData(req.body);
+            validate(req.body.user, BOT_TOKEN, {
+                expiresIn: DEVELOPMENT ? 0 : 3600
+            });
+            const userInitData = parse(req.body.user);
+
             if (!userInitData.user?.id) {
                 return res.status(400).json({ request: req.body, error: 'Missing user id' });
             }
-
-            validate(userInitData, BOT_TOKEN, {
-                expiresIn: DEVELOPMENT ? 0 : 3600
-            });
 
             const result = await checkin(Number(req.params.id), userInitData.user.id);
 
@@ -195,8 +201,8 @@ class EventController {
             }
 
             return res.status(200).json(result);
-        } catch (e) {
-            return res.status(400).json({ request: req.body, error: JSON.stringify(e) });
+        } catch {
+            return res.status(400).json({ request: req.body, error: 'Invalid user information' });
         }
     }
 }
