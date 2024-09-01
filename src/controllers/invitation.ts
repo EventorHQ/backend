@@ -5,6 +5,7 @@ import { addUserToOrg, createInvite, getInvite } from '../db/queries.js';
 import { getInitData } from '../utils/getInitData.js';
 import { invitationSchema } from '../models/invitation.js';
 import { db } from '../db/index.js';
+import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 
 @Controller('/invitations')
 class InvitationController {
