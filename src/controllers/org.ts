@@ -77,8 +77,7 @@ class OrgController {
         }
 
         const avatar = await getPictureByFileId(result.avatar_img);
-
-        if (result.members.findIndex((member) => member.id === user.id)) {
+        if (result.members.some((member) => member.id == user.id)) {
             return res.status(200).json({
                 id: result.id,
                 title: result.title,
