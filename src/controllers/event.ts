@@ -150,7 +150,7 @@ class EventController {
         }
 
         const body = eventEnlistSchema.safeParse({
-            ...req.body,
+            form: JSON.parse(req.body.form),
             event_id: Number(req.params.id),
             user_id: initData.user.id
         });
