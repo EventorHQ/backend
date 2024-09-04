@@ -91,10 +91,17 @@ class EventController {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
+        let formObj;
+        if (!req.body.form) {
+            formObj = [];
+        }
+
+        formObj = JSON.parse(req.body.form);
+
         const body = eventCreateSchema.safeParse({
             ...req.body,
             org_id: Number(req.body.org_id),
-            form: {},
+            form: formObj,
             start_date: new Date(req.body.start_date),
             end_date: new Date(req.body.start_date)
         });

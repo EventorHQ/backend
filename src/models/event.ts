@@ -1,11 +1,17 @@
 import { z } from 'zod';
 
+const eventFormFieldSchema = z.object({
+    type: z.enum(['text', 'wallet']),
+    label: z.string(),
+    required: z.boolean()
+});
+
 export const eventCreateSchema = z.object({
     org_id: z.number(),
     title: z.string(),
     description: z.string(),
     location: z.string(),
-    form: z.object({}).passthrough(),
+    form: z.array(eventFormFieldSchema),
     start_date: z.date(),
     end_date: z.date()
 });

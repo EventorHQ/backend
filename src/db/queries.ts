@@ -169,6 +169,7 @@ export async function getUserEvents(userId: number) {
             'events.start_date',
             'events.end_date',
             'events.created_at',
+            'events.form',
             sql<'creator' | 'visitor'>`'visitor'`.as('role')
         ])
         .where('event_visitors.user_id', '=', userId);
@@ -185,6 +186,7 @@ export async function getUserEvents(userId: number) {
             'events.start_date',
             'events.end_date',
             'events.created_at',
+            'events.form',
             sql<'creator' | 'visitor'>`'creator'`.as('role')
         ])
         .where('events.creator_id', '=', userId);
@@ -210,7 +212,7 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
             location: data.location,
             start_date: data.start_date,
             end_date: data.end_date,
-            form: data.form
+            form: {fields: data.form} // PG does not support storing arrays as JSON, so we wrap it
         })
         .returningAll()
         .executeTakeFirst();
@@ -259,6 +261,7 @@ export async function getEventById(id: number, userId: number) {
             'events.start_date',
             'events.end_date',
             'events.created_at',
+            'events.form',
             sql<Org>`json_build_object('id', o.id, 'title', o.title, 'is_fancy', o.is_fancy)`.as('org'),
             sql<'creator' | 'visitor' | 'seeker'>`
                 CASE 
