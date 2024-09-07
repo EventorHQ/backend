@@ -6,9 +6,18 @@ import { readFileSync } from 'fs';
 import { db } from '../db/index.js';
 import { saveFileBuffer } from '../utils/saveFileBuffer.js';
 import { getInitData } from '../utils/getInitData.js';
-import { addUserToOrg, deleteOrganization, getOrgWithMembersById, getUserById, getUserOrganizations } from '../db/queries.js';
+import {
+    addUserToOrg,
+    deleteOrganization,
+    deleteUserFromOrg,
+    getOrgWithMembersById,
+    getUserById,
+    getUserOrganizations,
+    getUserOrgRole
+} from '../db/queries.js';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 import { getUserProfilePicture } from '../utils/getUserProfilePicture.js';
+import { orgMemberRoles } from '../db/types.js';
 
 @Controller('/orgs')
 class OrgController {
@@ -224,6 +233,33 @@ class OrgController {
         await deleteOrganization(orgId);
 
         return res.status(200).json({ status: 'ok' });
+    }
+
+    @Route('patch', '/:id/members/:userId')
+    async changeUserRole(req: Request, res: Response, next: NextFunction) {
+        const initData = getInitData(res);
+        if (!initData?.user?.id) {
+            return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+        }
+
+        const orgId = Number(req.params.id);
+
+        const performerRole = await getUserOrgRole(initData.user.id, orgId);
+
+        if (performerRole !== 'admin') {
+            return res.status(403).json({ status: 'error', message: 'You are not allowed to change roles in this organization' });
+        }
+
+        const userId = Number(req.params.userId);
+        const role = req.body.role;
+
+        if (role && !orgMemberRoles.includes(role)) {
+            return res.status(400).json({ request: req.body, error: 'Invalid role' });
+        }
+
+        const result = role ? await addUserToOrg(userId, orgId, role) : await deleteUserFromOrg(userId, orgId);
+
+        return res.status(200).json(result);
     }
 }
 

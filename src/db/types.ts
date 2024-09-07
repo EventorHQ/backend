@@ -1,6 +1,7 @@
 import { ColumnType, Generated, Selectable } from 'kysely';
 
-export type OrgMemberRole = 'admin' | 'moderator' | 'member';
+export const orgMemberRoles = ['admin', 'moderator', 'member'] as const;
+export type OrgMemberRole = (typeof orgMemberRoles)[number];
 
 export interface Database {
     users: UsersTable;

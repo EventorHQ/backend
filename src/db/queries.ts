@@ -95,6 +95,15 @@ export async function addUserToOrg(userId: number, orgId: number, role: OrgMembe
         .executeTakeFirst();
 }
 
+export async function getUserOrgRole(userId: number, orgId: number) {
+    const result = await db.selectFrom('org_members').where('user_id', '=', userId).where('org_id', '=', orgId).select('role').executeTakeFirst();
+    return result?.role;
+}
+
+export async function deleteUserFromOrg(userId: number, orgId: number) {
+    return await db.deleteFrom('org_members').where('user_id', '=', userId).where('org_id', '=', orgId).executeTakeFirst();
+}
+
 export async function deleteUser(userId: number) {
     await db.deleteFrom('org_members').where('user_id', '=', userId).execute();
     await db.deleteFrom('invites').where('inviter_id', '=', userId).execute();
@@ -212,7 +221,7 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
             location: data.location,
             start_date: data.start_date,
             end_date: data.end_date,
-            form: {fields: data.form} // PG does not support storing arrays as JSON, so we wrap it
+            form: { fields: data.form } // PG does not support storing arrays as JSON, so we wrap it
         })
         .returningAll()
         .executeTakeFirst();
