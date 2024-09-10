@@ -77,7 +77,18 @@ class EventController {
         const event = await getEventAdministrationDetails(+req.params.id);
 
         if (!event) {
-            return res.status(404).json({ error: 'Event not found or no users registered' });
+            const basicEvent = await getEventById(+req.params.id, initData.user.id);
+            if (!basicEvent) {
+                return res.status(404).json({ error: 'Event not found' });
+            }
+
+            return res.status(200).json({
+                ...basicEvent,
+                total_visitors: 0,
+                total_checked_in_visitors: 0,
+                all_visitors: [],
+                checked_in_visitors: []
+            });
         }
 
         return res.status(200).json(event);
