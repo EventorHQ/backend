@@ -106,37 +106,6 @@ class InvitationController {
 
         return res.status(200).json(result);
     }
-
-    @Route('post', '/:id/cancel')
-    async cancelInvitation(req: Request, res: Response, next: NextFunction) {
-        const id = req.params.id;
-
-        if (!id) {
-            return res.status(400).json({ request: req.body, error: 'Missing invitation' });
-        }
-
-        const invite = await getInvite(id);
-
-        if (!invite) {
-            return res.status(404).json({ request: req.body, error: 'Invitation not found' });
-        }
-
-        const initData = getInitData(res);
-
-        if (!initData?.user?.id) {
-            return res.status(401).json({ status: 'error', message: 'Unauthorized' });
-        }
-
-        const { org, role } = invite;
-
-        const result = await addUserToOrg(initData.user.id, org.id, role);
-
-        if (!result) {
-            return res.status(400).json({ request: req.body, error: 'Failed to add user to organization' });
-        }
-
-        return res.status(200).json(result);
-    }
 }
 
 export default InvitationController;

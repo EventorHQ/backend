@@ -135,6 +135,11 @@ export async function getInvite(id: string) {
     return result;
 }
 
+export async function getOrgInvitations(orgId: number) {
+    const result = await db.selectFrom('invites').where('org_id', '=', orgId).selectAll().execute();
+    return result;
+}
+
 export async function createInvite(orgId: number, inviterId: number, role: OrgMemberRole = 'member', isReusable: boolean = false) {
     return await db
         .insertInto('invites')
@@ -150,7 +155,7 @@ export async function createInvite(orgId: number, inviterId: number, role: OrgMe
 }
 
 export async function deleteInvite(id: string) {
-    return await db.deleteFrom('invites').where('id', '=', id).executeTakeFirst();
+    return await db.deleteFrom('invites').where('id', '=', id).returningAll().executeTakeFirst();
 }
 
 export async function deleteOrganization(orgId: number) {

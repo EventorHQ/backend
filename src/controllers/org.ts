@@ -10,6 +10,7 @@ import {
     addUserToOrg,
     deleteOrganization,
     deleteUserFromOrg,
+    getOrgInvitations,
     getOrgWithMembersById,
     getUserById,
     getUserOrganizations,
@@ -117,6 +118,23 @@ class OrgController {
             avatar: avatar,
             isFancy: result.is_fancy
         });
+    }
+
+    @Route('get', '/:id/invitations')
+    async getOrgInvitations(req: Request, res: Response, next: NextFunction): Promise<Response<Org>> {
+        const orgId = Number(req.params.id);
+
+        const initData = getInitData(res);
+        if (!initData?.user?.id) {
+            return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+        }
+
+        const result = await getOrgInvitations(orgId);
+        if (!result) {
+            return res.status(404).json({ status: 'error', message: 'Organization not found' });
+        }
+
+        return res.status(200).json(result);
     }
 
     @Route('post', '')
