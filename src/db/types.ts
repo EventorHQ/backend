@@ -49,6 +49,7 @@ export interface InvitesTable {
     org_id: number;
     inviter_id: number;
     role: OrgMemberRole;
+    is_reusable: boolean;
 }
 
 export type Invite = Selectable<InvitesTable>;

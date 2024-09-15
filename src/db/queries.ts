@@ -119,6 +119,7 @@ export async function getInvite(id: string) {
         .select([
             'invites.id',
             'role',
+            'is_reusable',
             sql<User>`json_build_object('id', u.id,'first_name', u.first_name, 'last_name', u.last_name)`.as('inviter'),
             sql<Org>`json_build_object('id', o.id, 'title', o.title, 'avatar_img', o.avatar_img, 'is_fancy', o.is_fancy)`.as('org')
         ])
@@ -134,17 +135,22 @@ export async function getInvite(id: string) {
     return result;
 }
 
-export async function createInvite(orgId: number, inviterId: number, role: OrgMemberRole = 'member') {
+export async function createInvite(orgId: number, inviterId: number, role: OrgMemberRole = 'member', isReusable: boolean = false) {
     return await db
         .insertInto('invites')
         .values({
             id: randomUUID(),
             org_id: orgId,
             inviter_id: inviterId,
-            role: role
+            role: role,
+            is_reusable: isReusable
         })
         .returning('id')
         .executeTakeFirst();
+}
+
+export async function deleteInvite(id: string) {
+    return await db.deleteFrom('invites').where('id', '=', id).executeTakeFirst();
 }
 
 export async function deleteOrganization(orgId: number) {

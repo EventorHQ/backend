@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { Controller } from '../decorators/controller.js';
 import { Route } from '../decorators/route.js';
-import { addUserToOrg, createInvite, getInvite } from '../db/queries.js';
+import { addUserToOrg, createInvite, deleteInvite, getInvite } from '../db/queries.js';
 import { getInitData } from '../utils/getInitData.js';
 import { invitationSchema } from '../models/invitation.js';
 import { db } from '../db/index.js';
@@ -31,7 +31,7 @@ class InvitationController {
         }
 
         const { data } = body;
-        const invite = await createInvite(data.orgId, initData.user.id, data.role);
+        const invite = await createInvite(data.orgId, initData.user.id, data.role, data.isReusable);
 
         return res.status(201).json(invite);
     }
@@ -45,6 +45,23 @@ class InvitationController {
         }
 
         const invite = await getInvite(id);
+
+        if (!invite) {
+            return res.status(404).json({ request: req.body, error: 'Invitation not found' });
+        }
+
+        return res.status(200).json(invite);
+    }
+
+    @Route('delete', '/:id')
+    async deleteInvitation(req: Request, res: Response, next: NextFunction) {
+        const id = req.params.id;
+
+        if (!id) {
+            return res.status(400).json({ request: req.body, error: 'Missing invitation' });
+        }
+
+        const invite = await deleteInvite(id);
 
         if (!invite) {
             return res.status(404).json({ request: req.body, error: 'Invitation not found' });
@@ -76,6 +93,10 @@ class InvitationController {
         const { org, role } = invite;
 
         const result = await addUserToOrg(initData.user.id, org.id, role);
+
+        if (!invite.is_reusable) {
+            await deleteInvite(id);
+        }
 
         if (!result) {
             return res.status(400).json({ request: req.body, error: 'Failed to add user to organization' });
