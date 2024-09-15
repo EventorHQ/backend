@@ -16,7 +16,7 @@ export const eventCreateSchema = z.object({
     end_date: z.date()
 });
 
-export type EventCreateData = z.infer<typeof eventCreateSchema>;
+export type EventCreateData = Omit<z.infer<typeof eventCreateSchema>, 'form'> & { form: { fields: z.infer<typeof eventFormFieldSchema>[] } };
 
 export const eventEnlistSchema = z.object({
     event_id: z.number(),

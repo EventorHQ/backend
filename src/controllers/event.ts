@@ -10,7 +10,8 @@ import {
     getEventAdministrationDetails,
     getEventById,
     getUserCreatedEvents,
-    getUserEvents
+    getUserEvents,
+    updateEvent
 } from '../db/queries.js';
 import { getInitData } from '../utils/getInitData.js';
 import { eventCreateSchema, eventEnlistSchema } from '../models/event.js';
@@ -58,6 +59,64 @@ class EventController {
         const event = await getEventById(+req.params.id, initData.user.id);
 
         return res.status(200).json(event);
+    }
+
+    @Route('patch', '/:id')
+    async patchEventById(req: Request, res: Response, next: NextFunction) {
+        const initData = getInitData(res);
+
+        if (!initData?.user?.id) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        let formFields;
+        if (!req.body.form) {
+            formFields = [];
+        }
+
+        formFields = JSON.parse(req.body.form);
+
+        const body = eventCreateSchema.safeParse({
+            ...req.body,
+            org_id: Number(req.body.org_id),
+            form: formFields,
+            start_date: new Date(req.body.start_date),
+            end_date: new Date(req.body.end_date)
+        });
+
+        if (!body.success) {
+            return res.status(400).json({ error: body.error });
+        }
+
+        const { data } = body;
+
+        let cover;
+        if (req.files) {
+            if (!(cover = req.files.cover_img)) {
+                return res.status(400).json({ request: req.body, error: 'Missing cover image' });
+            }
+
+            if (Array.isArray(cover)) {
+                return res.status(400).json({ request: req.body, error: 'Cover image is not a file' });
+            }
+
+            const fileId = await saveFileBuffer(readFileSync(cover.tempFilePath));
+            const result = await updateEvent(+req.params.id, { ...data, form: { fields: formFields }, cover: fileId });
+
+            if (!result) {
+                return res.status(400).json({ request: req.body, error: 'Failed to create event' });
+            }
+
+            return res.status(200).json(result);
+        }
+
+        const result = await updateEvent(+req.params.id, { ...data, form: { fields: formFields } });
+
+        if (!result) {
+            return res.status(400).json({ request: req.body, error: 'Failed to create event' });
+        }
+
+        return res.status(200).json(result);
     }
 
     @Route('get', '/:id/administration')
@@ -114,7 +173,7 @@ class EventController {
             org_id: Number(req.body.org_id),
             form: formObj,
             start_date: new Date(req.body.start_date),
-            end_date: new Date(req.body.start_date)
+            end_date: new Date(req.body.end_date)
         });
         let cover;
 
@@ -132,7 +191,7 @@ class EventController {
 
         const { data } = body;
         const fileId = await saveFileBuffer(readFileSync(cover.tempFilePath));
-        const result = await createEvent({ ...data, cover: fileId, creatorId: initData.user.id });
+        const result = await createEvent({ ...data, form: { fields: formObj }, cover: fileId, creatorId: initData.user.id });
 
         if (!result) {
             return res.status(400).json({ request: req.body, error: 'Failed to create event' });

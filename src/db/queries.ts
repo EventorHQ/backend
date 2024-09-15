@@ -232,12 +232,16 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
             location: data.location,
             start_date: data.start_date,
             end_date: data.end_date,
-            form: { fields: data.form } // PG does not support storing arrays as JSON, so we wrap it
+            form: data.form
         })
         .returningAll()
         .executeTakeFirst();
 
     return result;
+}
+
+export async function updateEvent(id: number, data: EventCreateData & { cover?: string }) {
+    return await db.updateTable('events').set(data).where('id', '=', id).returningAll().executeTakeFirst();
 }
 
 export async function deleteEvent(id: number) {
