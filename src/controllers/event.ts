@@ -7,6 +7,7 @@ import {
     deleteEvent,
     enlist,
     getAllEvents,
+    getCheckinDataQuery,
     getEventAdministrationDetails,
     getEventById,
     getUserCreatedEvents,
@@ -280,6 +281,47 @@ class EventController {
             return res.status(200).json(result);
         } catch {
             return res.status(400).json({ request: req.body, error: 'Invalid user information' });
+        }
+    }
+
+    @Route('get', '/:id/checkin/:initData')
+    async getCheckinData(req: Request, res: Response, next: NextFunction) {
+        const initData = getInitData(res);
+
+        const rawUserData = req.params.initData;
+
+        if (!initData?.user?.id) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        if (!rawUserData) {
+            logging.error('Missing user information');
+            return res.status(400).json({ error: 'Missing user information' });
+        }
+
+        try {
+            validate(rawUserData, BOT_TOKEN, {
+                expiresIn: DEVELOPMENT ? 0 : 3600
+            });
+
+            const parsedUserData = parse(rawUserData);
+
+            if (!parsedUserData.user?.id) {
+                logging.error('Missing user id');
+                return res.status(400).json({ error: 'Missing user id' });
+            }
+
+            const result = await getCheckinDataQuery(Number(req.params.id), parsedUserData.user.id);
+
+            if (!result) {
+                logging.error('Failed to get checkin data');
+                return res.status(404).json({ error: 'Failed to get checkin data' });
+            }
+
+            return res.status(200).json(result);
+        } catch {
+            logging.error('Invalid user information');
+            return res.status(400).json({ error: 'Invalid user information' });
         }
     }
 }

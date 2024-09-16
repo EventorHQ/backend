@@ -262,6 +262,10 @@ export async function enlist({ eventId, userId, form }: { eventId: number; userI
         .executeTakeFirst();
 }
 
+export async function getCheckinDataQuery(eventId: number, userId: number) {
+    return await db.selectFrom('event_visitors').where('event_id', '=', eventId).where('user_id', '=', userId).selectAll().executeTakeFirst();
+}
+
 export async function checkin(eventId: number, userId: number) {
     return await db
         .updateTable('event_visitors')
