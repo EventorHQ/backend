@@ -101,7 +101,7 @@ export async function getUserOrgRole(userId: number, orgId: number) {
 }
 
 export async function deleteUserFromOrg(userId: number, orgId: number) {
-    return await db.deleteFrom('org_members').where('user_id', '=', userId).where('org_id', '=', orgId).executeTakeFirst();
+    return await db.deleteFrom('org_members').where('user_id', '=', userId).where('org_id', '=', orgId).returningAll().executeTakeFirst();
 }
 
 export async function deleteUser(userId: number) {
