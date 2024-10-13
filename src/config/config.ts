@@ -6,7 +6,7 @@ export const DEVELOPMENT = !process.env.NODE_ENV || process.env.NODE_ENV === 'de
 export const TEST = process.env.NODE_ENV === 'test';
 
 export const SERVER_PORT = process.env.SERVER_PORT ? +process.env.SERVER_PORT : 3000;
-export const SERVER_HOSTNAME = process.env.SERVER_HOST || 'http://127.0.0.1';
+export const SERVER_HOSTNAME = process.env.SERVER_HOST || 'https://tma.internal';
 
 export const SERVER = {
     PORT: SERVER_PORT,

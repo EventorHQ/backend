@@ -1,5 +1,5 @@
 import express from 'express';
-import http from 'http';
+import https from 'node:https';
 import fileUpload from 'express-fileupload';
 import 'reflect-metadata';
 import logging from './config/logging.js';
@@ -23,9 +23,13 @@ import UserController from './controllers/user.js';
 import { defineBotApiProxy } from './modules/botApiProxy.js';
 import InvitationController from './controllers/invitation.js';
 import EventController from './controllers/event.js';
+import fs from 'node:fs';
+
+const privateKey = fs.readFileSync('tma.internal-key.pem');
+const certificate = fs.readFileSync('tma.internal.pem');
 
 export const application = express();
-export let httpServer: ReturnType<typeof http.createServer>;
+export let httpServer: ReturnType<typeof https.createServer>;
 
 export const main = async () => {
     logging.info('---------------------------------------------');
@@ -67,7 +71,13 @@ export const main = async () => {
     logging.info('---------------------------------------------');
     logging.info('Start Server');
     logging.info('---------------------------------------------');
-    httpServer = http.createServer(application);
+    httpServer = https.createServer(
+        {
+            key: privateKey,
+            cert: certificate
+        },
+        application
+    );
 
     httpServer.on('error', (e) => {
         logging.error(e);
