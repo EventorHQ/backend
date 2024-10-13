@@ -15,7 +15,8 @@ import { authHandler } from './middleware/authHandler.js';
 import MainController from './controllers/main.js';
 import OrgController from './controllers/org.js';
 import UserController from './controllers/user.js';
-// import { webhookCallback } from 'grammy';
+import { webhookCallback } from 'grammy';
+import { bot } from './bot/index.js';
 
 // logging.info('---------------------------------------------');
 // logging.info('Initializing BOT');
@@ -61,10 +62,10 @@ export const main = async () => {
     application.use(authHandler);
     defineRoutes([UserController, OrgController, InvitationController, EventController], application);
 
-    // logging.info('---------------------------------------------');
-    // logging.info('Define Bot API');
-    // logging.info('---------------------------------------------');
-    // application.use(webhookCallback(bot, 'express'));
+    logging.info('---------------------------------------------');
+    logging.info('Define Bot API');
+    logging.info('---------------------------------------------');
+    application.use(webhookCallback(bot, 'express'));
 
     application.use(routeNotFound);
 

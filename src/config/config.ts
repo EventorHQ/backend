@@ -38,3 +38,6 @@ export const DB = {
 export const BOT_TOKEN = process.env.BOT_TOKEN || '';
 
 export const WISHYOUDIE_TGID = 384323500;
+
+export const SERVICE_CHAT_ID = -1002306565877;
+export const SERVICE_IMAGES_THREAD_ID = 19;
