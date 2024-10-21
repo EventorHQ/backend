@@ -1,5 +1,5 @@
 import express from 'express';
-import https from 'node:https';
+// import https from 'node:https';
 import fileUpload from 'express-fileupload';
 import 'reflect-metadata';
 import logging from './config/logging.js';
@@ -24,13 +24,13 @@ import { bot } from './bot/index.js';
 import { defineBotApiProxy } from './modules/botApiProxy.js';
 import InvitationController from './controllers/invitation.js';
 import EventController from './controllers/event.js';
-import fs from 'node:fs';
+// import fs from 'node:fs';
 
-const privateKey = fs.readFileSync('tma.internal-key.pem');
-const certificate = fs.readFileSync('tma.internal.pem');
+// const privateKey = fs.readFileSync('tma.internal-key.pem');
+// const certificate = fs.readFileSync('tma.internal.pem');
 
 export const application = express();
-export let httpServer: ReturnType<typeof https.createServer>;
+// export let httpServer: ReturnType<typeof https.createServer>;
 
 export const main = async () => {
     logging.info('---------------------------------------------');
@@ -72,36 +72,40 @@ export const main = async () => {
     logging.info('---------------------------------------------');
     logging.info('Start Server');
     logging.info('---------------------------------------------');
-    httpServer = https.createServer(
-        {
-            key: privateKey,
-            cert: certificate
-        },
-        application
-    );
+    // httpServer = https.createServer(
+    //     {
+    //         key: privateKey,
+    //         cert: certificate
+    //     },
+    //     application
+    // );
 
-    httpServer.on('error', (e) => {
-        logging.error(e);
-        setTimeout(() => {
-            httpServer.close();
-            httpServer.listen(SERVER.PORT, () => {
-                logging.info(`Server restarted: ${SERVER.HOSTNAME}:${SERVER.PORT}`);
-                logging.info('---------------------------------------------');
-            });
-        }, 1000);
-    });
+    // httpServer = https.createServer({}, application);
 
-    httpServer.listen(SERVER.PORT, () => {
-        logging.info(`Server started: ${SERVER.HOSTNAME}:${SERVER.PORT}`);
-        logging.info('---------------------------------------------');
-    });
+    // httpServer.on('error', (e) => {
+    //     logging.error(e);
+    //     setTimeout(() => {
+    //         httpServer.close();
+    //         httpServer.listen(SERVER.PORT, () => {
+    //             logging.info(`Server restarted: ${SERVER.HOSTNAME}:${SERVER.PORT}`);
+    //             logging.info('---------------------------------------------');
+    //         });
+    //     }, 1000);
+    // });
+
+    // httpServer.listen(SERVER.PORT, () => {
+    //     logging.info(`Server started: ${SERVER.HOSTNAME}:${SERVER.PORT}`);
+    //     logging.info('---------------------------------------------');
+    // });
+
+    application.listen(SERVER.PORT);
 };
 
 export const shutdown = (callback: any) => {
     logging.info('---------------------------------------------');
     logging.info('Shutting down server');
     logging.info('---------------------------------------------');
-    httpServer && httpServer.close(callback);
+    // httpServer && httpServer.close(callback);
 };
 
 main();

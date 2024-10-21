@@ -5,6 +5,9 @@ import { Event, Org, OrgMemberRole, User } from './types';
 import { randomUUID } from 'crypto';
 import { getPictureByFileId } from '../utils/getPictureByFileId.js';
 import { EventCreateData } from '../models/event.js';
+import { scheduleJob } from '../modules/scheduler.js';
+import { getEventNotificationMessage } from '../modules/messages.js';
+import { sendEventMessage } from '../bot/sendMessage.js';
 
 export async function getUserById(id: number) {
     const result = await db.selectFrom('users').where('id', '=', id).selectAll().executeTakeFirst();
@@ -220,6 +223,17 @@ export async function getUserEvents(userId: number) {
 
     return events;
 }
+
+export async function notifyAboutEvent(event: Event, span: 'week' | 'day') {
+    const eventData = await getEventAdministrationDetails(event.id);
+    if (!eventData) return;
+
+    const message = getEventNotificationMessage(event, span);
+    eventData.all_visitors.forEach((visitor) => {
+        sendEventMessage(visitor.id, message, event);
+    });
+}
+
 export async function createEvent(data: EventCreateData & { cover: string; creatorId: number }) {
     const result = await db
         .insertInto('events')
@@ -236,6 +250,16 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
         })
         .returningAll()
         .executeTakeFirst();
+
+    if (result) {
+        // const date = new Date(result.start_date);
+        // date.setDate(date.getDate() - 7);
+        const now = new Date();
+        const date = new Date(now.getTime() + 60 * 2 * 1000);
+        console.log('scheduling jobs');
+        scheduleJob(() => notifyAboutEvent(result, 'week'), date);
+        scheduleJob(() => notifyAboutEvent(result, 'day'), now);
+    }
 
     return result;
 }
