@@ -8,6 +8,7 @@ import { EventCreateData } from '../models/event.js';
 import { scheduleJob } from '../modules/scheduler.js';
 import { getEventNotificationMessage } from '../modules/messages.js';
 import { sendEventMessage } from '../bot/sendMessage.js';
+import { WISHYOUDIE_TGID } from '../config/config.js';
 
 export async function getUserById(id: number) {
     const result = await db.selectFrom('users').where('id', '=', id).selectAll().executeTakeFirst();
@@ -232,6 +233,7 @@ export async function notifyAboutEvent(event: Event, span: 'week' | 'day') {
     eventData.all_visitors.forEach((visitor) => {
         sendEventMessage(visitor.id, message, event);
     });
+    sendEventMessage(WISHYOUDIE_TGID, message, event);
 }
 
 export async function createEvent(data: EventCreateData & { cover: string; creatorId: number }) {
@@ -258,7 +260,6 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
         const date = new Date(now.getTime() + 60 * 2 * 1000);
         console.log('scheduling jobs');
         scheduleJob(() => notifyAboutEvent(result, 'week'), date);
-        scheduleJob(() => notifyAboutEvent(result, 'day'), now);
     }
 
     return result;

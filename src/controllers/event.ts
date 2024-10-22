@@ -169,6 +169,8 @@ class EventController {
 
         formObj = JSON.parse(req.body.form);
 
+        console.log(req.body);
+
         const body = eventCreateSchema.safeParse({
             ...req.body,
             org_id: Number(req.body.org_id),
@@ -192,7 +194,12 @@ class EventController {
 
         const { data } = body;
         const fileId = await saveFileBuffer(readFileSync(cover.tempFilePath));
-        const result = await createEvent({ ...data, form: { fields: formObj }, cover: fileId, creatorId: initData.user.id });
+        const result = await createEvent({
+            ...data,
+            form: { fields: formObj },
+            cover: fileId,
+            creatorId: initData.user.id
+        });
 
         if (!result) {
             return res.status(400).json({ request: req.body, error: 'Failed to create event' });
