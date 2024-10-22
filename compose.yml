@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+    app:
+        build:
+            context: .
+        container_name: node-app
+        ports:
+            - '3000:3000'
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.eventor_api.rule=Host(`eventor-api.wishyoudie.ru`)
+            - traefik.http.routers.eventor_api.entrypoints=websecure
+            - traefik.http.routers.eventor_api.tls=true
+            - traefik.http.routers.eventor_api.tls.certresolver=cfdns
+            - traefik.http.routers.eventor_api.service=eventor_api
+            - traefik.http.services.eventor_api.loadbalancer.server.port=3000
+        networks:
+            - internal_docker_net
+
+networks:
+    internal_docker_net:
+        external: true

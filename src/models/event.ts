@@ -13,7 +13,7 @@ export const eventCreateSchema = z.object({
     location: z.string(),
     form: z.array(eventFormFieldSchema),
     start_date: z.date(),
-    end_date: z.date()
+    end_date: z.date().nullable()
 });
 
 export type EventCreateData = Omit<z.infer<typeof eventCreateSchema>, 'form'> & { form: { fields: z.infer<typeof eventFormFieldSchema>[] } };

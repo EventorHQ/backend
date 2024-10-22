@@ -174,7 +174,7 @@ class EventController {
             org_id: Number(req.body.org_id),
             form: formObj,
             start_date: new Date(req.body.start_date),
-            end_date: new Date(req.body.end_date)
+            end_date: req.body.end_date ? new Date(req.body.end_date) : null
         });
         let cover;
 
