@@ -256,12 +256,13 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
         .executeTakeFirst();
 
     if (result) {
-        // const date = new Date(result.start_date);
-        // date.setDate(date.getDate() - 7);
-        const now = new Date();
-        const date = new Date(now.getTime() + 60 * 2 * 1000);
-        console.log('scheduling jobs');
+        await sendEventMessage(WISHYOUDIE_TGID, getEventNotificationMessage(result, 'week'), result);
+        await sendEventMessage(WISHYOUDIE_TGID, getEventNotificationMessage(result, 'day'), result);
+        const date = new Date(result.start_date);
+        date.setDate(date.getDate() - 7);
         scheduleJob(() => notifyAboutEvent(result, 'week'), date);
+        date.setDate(date.getDate() + 6);
+        scheduleJob(() => notifyAboutEvent(result, 'day'), date);
     }
 
     return result;

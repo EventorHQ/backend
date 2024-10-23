@@ -4,6 +4,7 @@ import { bot } from './index.js';
 export async function sendEventMessage(chatId: number, message: string, event: Event) {
     try {
         await bot.api.sendMessage(chatId, message, {
+            parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
                     [
