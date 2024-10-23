@@ -3,8 +3,9 @@ import { bot } from './index.js';
 
 export async function sendEventMessage(chatId: number, message: string, event: Event) {
     try {
-        await bot.api.sendMessage(chatId, message, {
-            parse_mode: 'Markdown',
+        await bot.api.sendPhoto(chatId, event.cover_img, {
+            caption: message,
+            parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
                     [

@@ -9,6 +9,7 @@ import { scheduleJob } from '../modules/scheduler.js';
 import { getEventNotificationMessage } from '../modules/messages.js';
 import { sendEventMessage } from '../bot/sendMessage.js';
 import { WISHYOUDIE_TGID } from '../config/config.js';
+import { differenceInWeeks } from 'date-fns';
 
 export async function getUserById(id: number) {
     const result = await db.selectFrom('users').where('id', '=', id).selectAll().executeTakeFirst();
@@ -256,11 +257,14 @@ export async function createEvent(data: EventCreateData & { cover: string; creat
         .executeTakeFirst();
 
     if (result) {
-        await sendEventMessage(WISHYOUDIE_TGID, getEventNotificationMessage(result, 'week'), result);
-        await sendEventMessage(WISHYOUDIE_TGID, getEventNotificationMessage(result, 'day'), result);
         const date = new Date(result.start_date);
-        date.setDate(date.getDate() - 7);
-        scheduleJob(() => notifyAboutEvent(result, 'week'), date);
+        await sendEventMessage(WISHYOUDIE_TGID, getEventNotificationMessage(result, 'day'), result);
+
+        if (differenceInWeeks(date, new Date()) > 1) {
+            date.setDate(date.getDate() - 7);
+            scheduleJob(() => notifyAboutEvent(result, 'week'), date);
+        }
+
         date.setDate(date.getDate() + 6);
         scheduleJob(() => notifyAboutEvent(result, 'day'), date);
     }
