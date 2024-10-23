@@ -253,14 +253,15 @@ class EventController {
 
     @Route('post', '/:id/checkin')
     async checkinToEvent(req: Request, res: Response, next: NextFunction) {
+        // userId is present if checkin is performed manually
         const initData = getInitData(res);
 
         if (!initData?.user?.id) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        if (!req.body.user) {
-            return res.status(400).json({ request: req.body, error: 'Missing user information' });
+        if (!req.body.user || !req.body.userId) {
+            return res.status(400).json({ error: 'Missing user information' });
         }
 
         const isAllowed = await isAllowedToPerformCheckin(Number(req.params.id), initData.user.id);
@@ -269,25 +270,35 @@ class EventController {
             return res.status(403).json({ error: 'You are not allowed to perform checkin' });
         }
 
-        try {
-            validate(req.body.user, BOT_TOKEN, {
-                expiresIn: DEVELOPMENT ? 0 : 3600
-            });
-            const userInitData = parse(req.body.user);
+        if (req.body.user) {
+            try {
+                validate(req.body.user, BOT_TOKEN, {
+                    expiresIn: DEVELOPMENT ? 0 : 3600
+                });
+                const userInitData = parse(req.body.user);
 
-            if (!userInitData.user?.id) {
-                return res.status(400).json({ request: req.body, error: 'Missing user id' });
+                if (!userInitData.user?.id) {
+                    return res.status(400).json({ error: 'Missing user id' });
+                }
+
+                const result = await checkin(Number(req.params.id), userInitData.user.id);
+
+                if (!result) {
+                    return res.status(400).json({ error: 'Failed to perform checkin' });
+                }
+
+                return res.status(200).json(result);
+            } catch {
+                return res.status(400).json({ error: 'Invalid user information' });
             }
-
-            const result = await checkin(Number(req.params.id), userInitData.user.id);
+        } else {
+            const result = await checkin(Number(req.params.id), req.body.userId);
 
             if (!result) {
-                return res.status(400).json({ request: req.body, error: 'Failed to perform checkin' });
+                return res.status(400).json({ error: 'Failed to perform checkin' });
             }
 
             return res.status(200).json(result);
-        } catch {
-            return res.status(400).json({ request: req.body, error: 'Invalid user information' });
         }
     }
 
