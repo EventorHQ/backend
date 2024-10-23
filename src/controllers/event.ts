@@ -260,7 +260,7 @@ class EventController {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        if (!req.body.user || !req.body.userId) {
+        if (!req.body.user && !req.body.userId) {
             return res.status(400).json({ error: 'Missing user information' });
         }
 
