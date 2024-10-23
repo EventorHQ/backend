@@ -226,14 +226,16 @@ export async function getUserEvents(userId: number) {
 }
 
 export async function notifyAboutEvent(event: Event, span: 'week' | 'day') {
+    const message = getEventNotificationMessage(event, span);
+    await sendEventMessage(WISHYOUDIE_TGID, message, event);
     const eventData = await getEventAdministrationDetails(event.id);
     if (!eventData) return;
 
-    const message = getEventNotificationMessage(event, span);
-    eventData.all_visitors.forEach((visitor) => {
-        sendEventMessage(visitor.id, message, event);
-    });
-    sendEventMessage(WISHYOUDIE_TGID, message, event);
+    await Promise.all(
+        eventData.all_visitors
+            .map((visitor) => sendEventMessage(visitor.id, message, event))
+            .concat(sendEventMessage(WISHYOUDIE_TGID, message, event))
+    );
 }
 
 export async function createEvent(data: EventCreateData & { cover: string; creatorId: number }) {
